@@ -174,25 +174,25 @@ then
     EMAIL=$GITHUB_USER
     collectInfo EMAIL "email" $EMAIL
 
-    PHONE="267 226 8431"
+    PHONE="+14155551234"
     collectInfo PHONE "phone number" $PHONE
 
     COUNTRY=US
     collectInfo COUNTRY "country code" $COUNTRY
 
-    POSTALCODE=94502
+    POSTALCODE=95105
     collectInfo POSTALCODE "postal code" $POSTALCODE
 
     STATE=CA
     collectInfo STATE "state or administrative area" $STATE
 
-    CITY=Alameda
+    CITY="San Francisco"
     collectInfo CITY "city" $CITY
 
-    ADDRESS="1048 Jost Lane"
+    ADDRESS="345 Spear Street"
     collectInfo ADDRESS "address" $ADDRESS
 
-    RECIPIENT="Terry Ryan"
+    RECIPIENT="Googler"
     collectInfo RECIPIENT "recipient" $RECIPIENT
 
     printf "allContacts: \n" > contact.yaml
@@ -254,14 +254,6 @@ done
 printf " - up \n"
 printf "Waiting for domain to be active - done  \n"
 
-
-
-
-
-
-
-# TODO: Grab the unsuffixed part of domain name to use as the name for everything 
-# in here that is related to PROJECT
 
 
 printf $DIVIDER
@@ -374,7 +366,7 @@ printf "Waiting for website to be serving http - done \n"
 
 printf $DIVIDER
 printf "CONGRATS!!!!!!! \n"
-printf "You have configured a project, spun up architecture and deployed code.\n"
+printf "You have configured a project, spun up architecture, and deployed code.\n"
 printf "See your site at: \n"
 printf "\n ${CYAN}http://$DOMAIN${NC} \n"
 printf "\n Secure version may take up to an hour to be ready, because of SSL cert provisioning process.  \n"
