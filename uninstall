@@ -1,0 +1,124 @@
+clear
+PROJECT=bucketsite-test
+CYAN='\033[0;36m'
+LCYAN='\033[1;36m'
+NC='\033[0m' # No Color
+
+printf "******************************************************************************** \n"
+printf "${LCYAN}BUCKETSITE UNINSTALL${NC} \n"
+printf "This process will delete a site using a Cloud Storage Bucket.\n"
+printf "******************************************************************************** \n"
+
+
+if [[ $1 ]]
+then
+      DOMAIN=$1
+else 
+    # Allow user to overide the DOMAIN. 
+    printf "Enter the domain of the microsite [leave blank for ${LCYAN}'${DOMAIN}'${NC}]: "
+    read USER_DOMAIN
+
+    if [[ $USER_DOMAIN ]]
+    then
+        DOMAIN=$USER_DOMAIN
+    fi
+
+fi
+
+
+if [[ !($DOMAIN) ]]
+then
+      printf "\nSorry, domain must be specified \n"
+	  exit 1;
+fi
+
+if [[ $2 ]]
+then
+      PROJECT=$2
+else 
+    # Allow user to overide the PROJECT. 
+    printf "Enter the PROJECT which will host the applicaition [leave blank for ${LCYAN}'${PROJECT}'${NC}]: "
+    read USER_PROJECT
+
+    if [[ $USER_PROJECT ]]
+    then
+        PROJECT=$USER_PROJECT
+    fi
+
+fi
+
+if [[ !($PROJECT) ]]
+then
+      printf "\nSorry, a Project ID must be specified \n"
+	  exit 1;
+fi
+
+
+
+gcloud config set project ${PROJECT}
+
+
+BUCKET=$DOMAIN
+BASENAME=${DOMAIN//./-}
+CLOUDDNSZONE=$BASENAME-zone
+
+
+
+
+
+printf "${LCYAN}Project Details${NC} \n"
+printf "Project ID:                 ${LCYAN}$PROJECT${NC} \n"
+printf "Domain:                     ${LCYAN}$DOMAIN${NC} \n"
+printf "Bucket:                     ${LCYAN}$BUCKET${NC} \n"
+printf "DNS Zone:                   ${LCYAN}$CLOUDDNSZONE${NC} \n"
+
+
+
+
+printf "******************************************************************************** \n"
+printf "Tear Down the Load Balancer \n"
+gcloud compute forwarding-rules delete $BASENAME-https-lb-forwarding-rule --global -q
+gcloud compute target-https-proxies delete $BASENAME-ssl-lb-proxy --global -q
+gcloud compute forwarding-rules delete $BASENAME-http-lb-forwarding-rule --global -q
+gcloud compute target-http-proxies delete $BASENAME-lb-proxy -q
+gcloud compute url-maps delete $BASENAME-lb -q
+gcloud compute backend-buckets delete $BASENAME-be -q
+printf "Tear Down the Load Balancer - done \n"
+
+printf "******************************************************************************** \n"
+printf "Delete the SSL Certificate \n"
+gcloud compute ssl-certificates delete $BASENAME-cert -q
+printf "Delete the SSL Certificate - done \n"
+
+
+
+printf "******************************************************************************** \n"
+printf "Delete the Cloud Stroage Bucket \n"
+gsutil -m rm -rf gs://$BUCKET
+gsutil -m rb  gs://$BUCKET
+printf "Delete the Cloud Stroage Bucket - done \n"
+
+printf "******************************************************************************** \n"
+printf "Removing all DNS Records \n"
+IP=$(gcloud compute addresses describe $BASENAME-ip --global --format="value(address)")
+gcloud dns record-sets transaction start --zone=$CLOUDDNSZONE
+gcloud dns record-sets transaction remove $IP --name=$DOMAIN \
+   --ttl=60 --type=A --zone=$CLOUDDNSZONE
+gcloud dns record-sets transaction execute --zone=$CLOUDDNSZONE
+printf "Removing all DNS Records - done \n"
+
+printf "******************************************************************************** \n"
+printf "Deleting Cloud DNS for your domain \n"
+gcloud dns managed-zones delete $CLOUDDNSZONE  -q
+printf "Deleting Cloud DNS for your domain - done \n"
+
+printf "******************************************************************************** \n"
+printf "Delete the IP Address \n"
+gcloud compute addresses delete $BASENAME-ip -q --global
+printf "Delete the IP Address - done \n"
+
+
+printf "******************************************************************************** \n"
+printf "CONGRATS!!!!!!! \n"
+printf "You have deleted your app. The domain you registered will be yours until you transfer it or it expires.\n"
+printf "******************************************************************************** \n"

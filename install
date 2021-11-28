@@ -1,0 +1,382 @@
+clear
+PROJECT=$(gcloud config get-value project | xargs)
+CYAN='\033[0;36m'
+LCYAN='\033[1;36m'
+NC='\033[0m' # No Color
+DIVIDER="*****************************************************************************************************\n"
+
+
+function collectInfo(){
+    local  __resultvar=$1
+    local LABEL=$2
+    local VALUE=$3
+
+    printf "Enter your $LABEL [leave blank for ${LCYAN}'${VALUE}'${NC}]:"
+    read USER_VALUE
+
+    if [[ $USER_VALUE ]]
+    then
+        VALUE=$USER_VALUE
+    fi
+
+    if [[ !($VALUE) ]]
+    then
+        printf "\nSorry, $LABEL is mandatory.\n"
+        exit 1;
+    fi
+
+    eval $__resultvar="'$VALUE'"
+}
+
+
+
+printf $DIVIDER
+printf "${LCYAN}YESORNOSITE INSTALL${NC} \n"
+printf "This process will create a simple yes or no question site using a Cloud Storage Bucket.\n"
+printf "Obviously once you create this Cloud Storage Bucket based website, you can host any kind \n"
+printf "of content here. \n"
+printf $DIVIDER
+
+
+
+if [[ $1 ]]
+then
+      DOMAIN=$1
+else 
+    # Allow user to overide the DOMAIN. 
+    printf "Enter the domain of the yes or no site [leave blank for ${LCYAN}'${DOMAIN}'${NC}]: "
+    read USER_DOMAIN
+
+    if [[ $USER_DOMAIN ]]
+    then
+        DOMAIN=$USER_DOMAIN
+    fi
+
+fi
+
+
+if [[ !($DOMAIN) ]]
+then
+      printf "\nSorry, domain must be specified \n"
+	  exit 1;
+fi
+
+YESORNO=yes
+if [[ $2 ]]
+then
+      YESORNO=$2
+else 
+    # Allow user to overide the YESORNO. 
+    printf "Enter either yes or no  [leave blank for ${LCYAN}'${YESORNO}'${NC}]: "
+    read USER_YESORNO
+
+    if [[ $USER_YESORNO ]]
+    then
+        YESORNO=$USER_YESORNO
+    fi
+
+fi
+
+
+if [[ !($YESORNO) ]]
+then
+      printf "\nSorry, YESORNO must be specified \n"
+	  exit 1;
+fi
+
+
+if [[ $3 ]]
+then
+      PROJECT=$3
+else 
+    # Allow user to overide the PROJECT. 
+    printf "Enter the PROJECT which will host the applicaition [leave blank for ${LCYAN}'${PROJECT}'${NC}]: "
+    read USER_PROJECT
+
+    if [[ $USER_PROJECT ]]
+    then
+        PROJECT=$USER_PROJECT
+    fi
+
+fi
+
+if [[ !($PROJECT) ]]
+then
+      printf "\nSorry, a Project ID must be specified \n"
+	  exit 1;
+fi
+
+
+
+gcloud config set project ${PROJECT}
+
+
+BUCKET=$DOMAIN
+BASENAME=${DOMAIN//./-}
+CLOUDDNSZONE=$BASENAME-zone
+
+
+printf "${LCYAN}Project Details${NC} \n"
+printf "Project ID:                 ${LCYAN}$PROJECT${NC} \n"
+printf "Domain:                     ${LCYAN}$DOMAIN${NC} \n"
+printf "Bucket:                     ${LCYAN}$BUCKET${NC} \n"
+printf "DNS Zone:                   ${LCYAN}$CLOUDDNSZONE${NC} \n"
+
+
+
+printf $DIVIDER
+printf "Enabling services in your GCP project \n"
+gcloud services enable domains.googleapis.com || true
+gcloud services enable storage.googleapis.com || true
+gcloud services enable compute.googleapis.com || true
+gcloud services enable dns.googleapis.com || true
+printf "Enabling services in your GCP project - done \n"
+
+
+# INFO=$(gcloud beta domains registrations search-domains $DOMAIN  --format="csv(DOMAIN,AVAILABILITY,YEARLY_PRICE)" | grep "$DOMAIN," | grep ",AVAILABLE")
+
+# if [[ !($INFO) ]]
+# then
+#       printf "\nSorry, domain is not available, please try another \n"
+# 	  exit 1;
+# fi
+
+# IFS=$','
+# INFOARR=($INFO)
+# COST=${INFOARR[2]}
+
+
+# printf "Domain is availabe \n"
+# printf "Cost:  ${LCYAN}$COST${NC} \n"
+
+
+if [[ !($4) ]]
+then
+
+    printf "Buying a domain is not reversable, so are you sure you want to spend ${LCYAN}$COST${NC} for ${LCYAN}$DOMAIN${NC}? (y or n)"
+    read REPLY
+    if [[ ! $REPLY =~ ^[Yy]$ ]]
+    then
+        printf "Okay! Shut it down! \n"
+        exit 1
+    fi
+
+fi
+
+
+
+if [ ! -f contact.yaml ]
+then
+
+    printf $DIVIDER
+    printf "Domain registration requires some data. This process only asks for the mandatory ones. \n"
+
+    EMAIL=$GITHUB_USER
+    collectInfo EMAIL "email" $EMAIL
+
+    PHONE="267 226 8431"
+    collectInfo PHONE "phone number" $PHONE
+
+    COUNTRY=US
+    collectInfo COUNTRY "country code" $COUNTRY
+
+    POSTALCODE=94502
+    collectInfo POSTALCODE "postal code" $POSTALCODE
+
+    STATE=CA
+    collectInfo STATE "state or administrative area" $STATE
+
+    CITY=Alameda
+    collectInfo CITY "city" $CITY
+
+    ADDRESS="1048 Jost Lane"
+    collectInfo ADDRESS "address" $ADDRESS
+
+    RECIPIENT="Terry Ryan"
+    collectInfo RECIPIENT "recipient" $RECIPIENT
+
+    printf "allContacts: \n" > contact.yaml
+    printf "  email: '$EMAIL' \n" >> contact.yaml
+    printf "  phoneNumber: $PHONE' \n" >> contact.yaml
+    printf "  postalAddress: \n" >> contact.yaml
+    printf "    regionCode: '$COUNTY' \n" >> contact.yaml
+    printf "    postalCode: '$POSTALCODE' \n" >> contact.yaml
+    printf "    administrativeArea: '$STATE' \n" >> contact.yaml
+    printf "    locality: '$CITY' \n" >> contact.yaml
+    printf "    addressLines: ['$ADDRESS'] \n" >> contact.yaml
+    printf "    recipients: ['$RECIPIENT'] \n" >> contact.yaml
+
+fi
+
+printf $DIVIDER
+printf "Setting up Cloud DNS for your domain \n"
+gcloud dns managed-zones create $CLOUDDNSZONE \
+   --description="A DNS Zone for managing $DOMAIN" \
+   --dns-name=$DOMAIN -q
+printf "Setting up Cloud DNS for your domain - done \n"
+
+
+# printf $DIVIDER
+# printf "Registering Domain \n"
+# gcloud beta domains registrations register $DOMAIN  \
+# --contact-privacy=private-contact-data --cloud-dns-zone=$CLOUDDNSZONE \
+# --yearly-price=$COST --contact-data-from-file=contact.yaml
+# printf "Registering Domain - done \n"
+
+gcloud beta domains registrations configure dns $DOMAIN --cloud-dns-zone=$CLOUDDNSZONE
+
+
+printf $DIVIDER
+printf "Waiting for domain to be active \n"
+state=$(gcloud beta domains registrations describe $DOMAIN --format="value(state)")
+SECONDS=5
+i=0
+limit=60
+while [ "$state" != "ACTIVE" ]
+do
+    i=$(( $i + 1 ))
+    if [ $i -eq 1 ]
+    then
+        printf "Checking if domain is up"
+    fi
+
+    if [ $i -eq $limit ]
+    then
+        printf "Timed out \n"
+        exit 1
+    fi
+    
+    state=$(gcloud beta domains registrations describe $DOMAIN --format="value(state)")
+    printf "."
+    SLEEP $SECONDS
+done
+
+printf " - up \n"
+printf "Waiting for domain to be active - done  \n"
+
+
+
+
+
+
+
+# TODO: Grab the unsuffixed part of domain name to use as the name for everything 
+# in here that is related to PROJECT
+
+
+printf $DIVIDER
+printf "Creating SSL Certificate \n"
+gcloud compute ssl-certificates create $BASENAME-cert \
+    --description="Cert for $BASENAME-microsite" \
+    --domains=$DOMAIN --global
+printf "Creating SSL Certificate - done \n"
+
+printf $DIVIDER
+printf "Creating External IP \n"
+gcloud compute addresses create $BASENAME-ip \
+	--network-tier=PREMIUM --ip-version=IPV4 --global
+printf "Creating External IP - done \n"
+
+printf $DIVIDER
+printf "Creating Storage Bucket \n"
+gsutil mb gs://$BUCKET
+gsutil iam ch allUsers:objectViewer gs://$BUCKET 
+gsutil web set -m index.html -e 404.html gs://$BUCKET 
+
+printf "Creating Storage Bucket - done \n"
+
+printf $DIVIDER
+printf "Copying site to the bucket \n"
+printf "Answer was: ${LCYAN}$YESORNO${NC} \n"
+if [ "$YESORNO" = "no" ]
+then
+    gsutil cp -r www/no/* gs://$BUCKET/	
+else
+    gsutil cp -r www/yes/* gs://$BUCKET/	
+fi
+
+printf "Copying site to the bucket - done \n"
+
+printf $DIVIDER
+printf "Standing up Load Balancer \n"
+gcloud compute backend-buckets create $BASENAME-be \
+--gcs-bucket-name=$DOMAIN
+
+gcloud compute url-maps create $BASENAME-lb  \
+--default-backend-bucket=$BASENAME-be
+printf "Standing up Load Balancer - done \n"
+	
+printf $DIVIDER
+printf "Enabling HTTP \n"
+gcloud compute target-http-proxies create $BASENAME-lb-proxy \
+--url-map=$BASENAME-lb
+
+gcloud compute forwarding-rules create $BASENAME-http-lb-forwarding-rule \
+--address=$BASENAME-ip --global --target-http-proxy=$BASENAME-lb-proxy \
+--ports=80
+printf "Enabling HTTP - done \n"
+
+printf $DIVIDER
+printf "Enabling HTTPS \n"
+gcloud compute target-https-proxies create $BASENAME-ssl-lb-proxy \
+--url-map=$BASENAME-lb  --ssl-certificates $BASENAME-cert \
+--global-ssl-certificates --global
+
+gcloud compute forwarding-rules create $BASENAME-https-lb-forwarding-rule \
+--address=$BASENAME-ip --global --target-https-proxy=$BASENAME-ssl-lb-proxy \
+--ports=443
+printf "Enabling HTTPS - done \n"
+
+
+IP=$(gcloud compute addresses describe $BASENAME-ip --global --format="value(address)")
+
+
+printf $DIVIDER
+printf "Setting DNS A Record \n"
+gcloud dns record-sets transaction start --zone=$CLOUDDNSZONE
+
+gcloud dns record-sets transaction add $IP --name=$DOMAIN \
+   --ttl=60 --type=A --zone=$CLOUDDNSZONE
+
+gcloud dns record-sets transaction execute --zone=$CLOUDDNSZONE
+printf "Setting DNS A Record - done \n"
+
+printf $DIVIDER
+printf "Waiting for website to be serving http \n"
+STATUS=$(curl --write-out '%{http_code}' --resolve $DOMAIN:80:$IP --silent --output /dev/null http://$DOMAIN )
+DURATION=5
+i=0
+limit=60
+while [ $STATUS -ne 200 ]
+do
+    i=$(( $i + 1 ))
+
+    if [ $i -eq $limit ]
+    then
+        printf "Timed out \n"
+        exit 1
+    fi
+    if [ $i -eq 1 ]
+    then
+        printf "Checking if site is up"
+    fi
+    
+    
+    STATUS=$(curl --write-out '%{http_code}' --resolve $DOMAIN:80:$IP --silent --output /dev/null http://$DOMAIN )
+    printf "."
+    SLEEP $DURATION
+done
+
+printf " - up \n"
+
+printf "Waiting for website to be serving http - done \n"
+
+
+printf $DIVIDER
+printf "CONGRATS!!!!!!! \n"
+printf "You have configured a project, spun up architecture and deployed code.\n"
+printf "See your site at: \n"
+printf "\n ${CYAN}http://$DOMAIN${NC} \n"
+printf "\n Secure version may take up to an hour to be ready, because of SSL cert provisioning process.  \n"
+printf "\n ${CYAN}https://$DOMAIN${NC} \n"
+printf $DIVIDER
