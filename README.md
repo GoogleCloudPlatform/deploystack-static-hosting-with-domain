@@ -1,9 +1,7 @@
-# App in a Box - Todo 
+# App in a Box - YesOrNoSite 
 
-This is a simple todo application written in containers that uses a MySQL 
-backend along with Redis Caching to drive a API and a frontend that powers
-a simple little Todo application.  It also spins up Google Cloud infrastructure
-to power the application. 
+This is a simple site creator that will spin up a Cloud Storage Served static
+website, fronted by a Google Cloud Load Balancer with an SSL certificate. 
 
 ![ToDo architecture](architecture.png)
 
@@ -22,21 +20,6 @@ Once this opens up, you can install by:
 ## Cleanup 
 To remove all billing components from the project
 1. Typing `./uninstall`
-
-## Developement
-There is a development setup for this application that uses Docker to run 
-everything you need to developer and test it out locally. 
-
-To run:
-1. Open a terminal on your local system. 
-1. `cd code`
-1. `make dev`
-
-This will spin up 4 containers
-1. MySQL /database
-1. Redis
-1. Golang API /middleware
-1. Static HTML/JS/CSS site /frontend
 
 
 This is not an official Google product.
