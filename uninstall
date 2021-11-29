@@ -90,8 +90,6 @@ printf "Delete the SSL Certificate \n"
 gcloud compute ssl-certificates delete $BASENAME-cert -q
 printf "Delete the SSL Certificate - done \n"
 
-
-
 printf "******************************************************************************** \n"
 printf "Delete the Cloud Stroage Bucket \n"
 gsutil -m rm -rf gs://$BUCKET
