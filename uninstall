@@ -14,12 +14,23 @@
 
 clear
 PROJECT=bucketsite-test
+BLACK='\033[0;30m'
+WHITE='\033[1;37m'
+
 CYAN='\033[0;36m'
-LCYAN='\033[1;36m'
+BCYAN='\033[1;36m'
+ONCYAN="\033[46m"
+UCYAN='\033[4;36m' 
+
+RED='\033[0;31m'
+BRED='\033[1;31m'
+ONRED="\033[41m"  
+  
 NC='\033[0m' # No Color
+DIVIDER="*****************************************************************************************************\n"
 
 printf "******************************************************************************** \n"
-printf "${LCYAN}BUCKETSITE UNINSTALL${NC} \n"
+printf "${BCYAN}YESORNOSITE UNINSTALL${NC} \n"
 printf "This process will delete a site using a Cloud Storage Bucket.\n"
 printf "******************************************************************************** \n"
 
@@ -29,7 +40,7 @@ then
       DOMAIN=$1
 else 
     # Allow user to overide the DOMAIN. 
-    printf "Enter the domain of the microsite [leave blank for ${LCYAN}'${DOMAIN}'${NC}]: "
+    printf "Enter the domain of the microsite [leave blank for ${CYAN}'${DOMAIN}'${NC}]: "
     read USER_DOMAIN
 
     if [[ $USER_DOMAIN ]]
@@ -51,7 +62,7 @@ then
       PROJECT=$2
 else 
     # Allow user to overide the PROJECT. 
-    printf "Enter the PROJECT which will host the applicaition [leave blank for ${LCYAN}'${PROJECT}'${NC}]: "
+    printf "Enter the PROJECT which will host the applicaition [leave blank for ${CYAN}'${PROJECT}'${NC}]: "
     read USER_PROJECT
 
     if [[ $USER_PROJECT ]]
@@ -80,11 +91,11 @@ CLOUDDNSZONE=$BASENAME-zone
 
 
 
-printf "${LCYAN}Project Details${NC} \n"
-printf "Project ID:                 ${LCYAN}$PROJECT${NC} \n"
-printf "Domain:                     ${LCYAN}$DOMAIN${NC} \n"
-printf "Bucket:                     ${LCYAN}$BUCKET${NC} \n"
-printf "DNS Zone:                   ${LCYAN}$CLOUDDNSZONE${NC} \n"
+printf "${CYAN}Project Details${NC} \n"
+printf "Project ID:                 ${CYAN}$PROJECT${NC} \n"
+printf "Domain:                     ${CYAN}$DOMAIN${NC} \n"
+printf "Bucket:                     ${CYAN}$BUCKET${NC} \n"
+printf "DNS Zone:                   ${CYAN}$CLOUDDNSZONE${NC} \n"
 
 
 
