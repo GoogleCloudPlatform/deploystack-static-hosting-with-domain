@@ -130,10 +130,10 @@ printf "DNS Zone:                   ${CYAN}$CLOUDDNSZONE${NC} \n"
 
 printf $DIVIDER
 printf "Enabling services in your GCP project \n"
-gcloud services enable domains.googleapis.com || true
-gcloud services enable storage.googleapis.com || true
-gcloud services enable compute.googleapis.com || true
-gcloud services enable dns.googleapis.com || true
+gcloud services enable domains.googleapis.com 
+gcloud services enable storage.googleapis.com 
+gcloud services enable compute.googleapis.com 
+gcloud services enable dns.googleapis.com 
 printf "Enabling services in your GCP project - ${BCYAN}done${NC} \n"
 
 
