@@ -183,7 +183,9 @@ then
 
     printf $DIVIDER
     printf "Domain registration requires some data. This process only asks for the mandatory ones. \n"
+    printf "The domain will be registered with user privacy enabled, so that your contact info will not be public. \n"
     printf "This will create a file, so that you never have to do it again. \n"
+    printf "This file will only exist locally, or in your Cloud Shell environment.  \n"
 
     EMAIL=$GITHUB_USER
     collectAddressInfo EMAIL "email" $EMAIL 
