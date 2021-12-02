@@ -206,7 +206,7 @@ do
     
     state=$(gcloud beta domains registrations describe $DOMAIN --format="value(state)")
     printf "."
-    SLEEP $SECONDS
+    sleep $SECONDS
 done
 
 printf " - up \n"
@@ -304,7 +304,7 @@ do
     
     STATUS=$(curl --write-out '%{http_code}' --resolve $DOMAIN:80:$IP --silent --output /dev/null http://$DOMAIN )
     printf "."
-    SLEEP $DURATION
+    sleep $DURATION
 done
 
 printf " - up \n"
