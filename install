@@ -97,54 +97,53 @@ then
             exit 1
         fi
     fi
+
+
+    if [ ! -f contact.yaml ]
+    then
+
+        printf $DIVIDER
+        printf "Domain registration requires some data. This process only asks for the mandatory ones. \n"
+        printf "The domain will be registered with user privacy enabled, so that your contact info will not be public. \n"
+        printf "This will create a file, so that you never have to do it again. \n"
+        printf "This file will only exist locally, or in your Cloud Shell environment.  \n"
+
+        EMAIL=$GITHUB_USER
+        collectAddressInfo EMAIL "email" $EMAIL 
+
+        PHONE="+14155551234"
+        collectAddressInfo PHONE "phone number" $PHONE "Please enter with country code - +1 555 555 5555 for US for example"
+
+        COUNTRY=US
+        collectAddressInfo COUNTRY "country code" $COUNTRY
+
+        POSTALCODE=95105
+        collectAddressInfo POSTALCODE "postal code" $POSTALCODE
+
+        STATE=CA
+        collectAddressInfo STATE "state or administrative area" $STATE
+
+        CITY="San Francisco"
+        collectAddressInfo CITY "city" $CITY
+
+        ADDRESS="345 Spear Street"
+        collectAddressInfo ADDRESS "address" $ADDRESS
+
+        RECIPIENT="Googler"
+        collectAddressInfo RECIPIENT "recipient" $RECIPIENT
+
+        printf "allContacts: \n" > contact.yaml
+        printf "  email: '$EMAIL' \n" >> contact.yaml
+        printf "  phoneNumber: $PHONE' \n" >> contact.yaml
+        printf "  postalAddress: \n" >> contact.yaml
+        printf "    regionCode: '$COUNTY' \n" >> contact.yaml
+        printf "    postalCode: '$POSTALCODE' \n" >> contact.yaml
+        printf "    administrativeArea: '$STATE' \n" >> contact.yaml
+        printf "    locality: '$CITY' \n" >> contact.yaml
+        printf "    addressLines: ['$ADDRESS'] \n" >> contact.yaml
+        printf "    recipients: ['$RECIPIENT'] \n" >> contact.yaml
+    fi
 fi
-
-
-if [ ! -f contact.yaml ]
-then
-
-    printf $DIVIDER
-    printf "Domain registration requires some data. This process only asks for the mandatory ones. \n"
-    printf "The domain will be registered with user privacy enabled, so that your contact info will not be public. \n"
-    printf "This will create a file, so that you never have to do it again. \n"
-    printf "This file will only exist locally, or in your Cloud Shell environment.  \n"
-
-    EMAIL=$GITHUB_USER
-    collectAddressInfo EMAIL "email" $EMAIL 
-
-    PHONE="+14155551234"
-    collectAddressInfo PHONE "phone number" $PHONE "Please enter with country code - +1 555 555 5555 for US for example"
-
-    COUNTRY=US
-    collectAddressInfo COUNTRY "country code" $COUNTRY
-
-    POSTALCODE=95105
-    collectAddressInfo POSTALCODE "postal code" $POSTALCODE
-
-    STATE=CA
-    collectAddressInfo STATE "state or administrative area" $STATE
-
-    CITY="San Francisco"
-    collectAddressInfo CITY "city" $CITY
-
-    ADDRESS="345 Spear Street"
-    collectAddressInfo ADDRESS "address" $ADDRESS
-
-    RECIPIENT="Googler"
-    collectAddressInfo RECIPIENT "recipient" $RECIPIENT
-
-    printf "allContacts: \n" > contact.yaml
-    printf "  email: '$EMAIL' \n" >> contact.yaml
-    printf "  phoneNumber: $PHONE' \n" >> contact.yaml
-    printf "  postalAddress: \n" >> contact.yaml
-    printf "    regionCode: '$COUNTY' \n" >> contact.yaml
-    printf "    postalCode: '$POSTALCODE' \n" >> contact.yaml
-    printf "    administrativeArea: '$STATE' \n" >> contact.yaml
-    printf "    locality: '$CITY' \n" >> contact.yaml
-    printf "    addressLines: ['$ADDRESS'] \n" >> contact.yaml
-    printf "    recipients: ['$RECIPIENT'] \n" >> contact.yaml
-fi
-
 
 
 section_open "Setting up Cloud DNS for your domain"
