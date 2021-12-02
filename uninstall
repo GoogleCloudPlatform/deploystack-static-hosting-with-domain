@@ -13,82 +13,24 @@
 #  limitations under the License.
 
 clear
-PROJECT=bucketsite-test
-BLACK='\033[0;30m'
-WHITE='\033[1;37m'
+source globals
 
-CYAN='\033[0;36m'
-BCYAN='\033[1;36m'
-ONCYAN="\033[46m"
-UCYAN='\033[4;36m' 
+PROJECT=$(gcloud config get-value project | xargs)
 
-RED='\033[0;31m'
-BRED='\033[1;31m'
-ONRED="\033[41m"  
-  
-NC='\033[0m' # No Color
-DIVIDER="*****************************************************************************************************\n"
+DESC="This process will tear down all of the Google Cloud infrastructure assoicated 
+with the domain you enter. However you will still own the domain - that can't 
+be programatically removed." 
 
-printf "******************************************************************************** \n"
-printf "${BCYAN}YESORNOSITE UNINSTALL${NC} \n"
-printf "This process will delete a site using a Cloud Storage Bucket.\n"
-printf "******************************************************************************** \n"
+print_title "YESORNOSITE UNINSTALL" "$DESC" "2"
 
-
-if [[ $1 ]]
-then
-      DOMAIN=$1
-else 
-    # Allow user to overide the DOMAIN. 
-    printf "Enter the domain of the microsite [leave blank for ${CYAN}'${DOMAIN}'${NC}]: "
-    read USER_DOMAIN
-
-    if [[ $USER_DOMAIN ]]
-    then
-        DOMAIN=$USER_DOMAIN
-    fi
-
-fi
-
-
-if [[ !($DOMAIN) ]]
-then
-      printf "\nSorry, domain must be specified \n"
-	  exit 1;
-fi
-
-if [[ $2 ]]
-then
-      PROJECT=$2
-else 
-    # Allow user to overide the PROJECT. 
-    printf "Enter the PROJECT which will host the applicaition [leave blank for ${CYAN}'${PROJECT}'${NC}]: "
-    read USER_PROJECT
-
-    if [[ $USER_PROJECT ]]
-    then
-        PROJECT=$USER_PROJECT
-    fi
-
-fi
-
-if [[ !($PROJECT) ]]
-then
-      printf "\nSorry, a Project ID must be specified \n"
-	  exit 1;
-fi
-
-
+collectParamters DOMAIN "$1" "the domain of the yes or no site" 
+collectParamters PROJECT "$2" "the id of the project that will host the site" "$PROJECT" 
 
 gcloud config set project ${PROJECT}
-
 
 BUCKET=$DOMAIN
 BASENAME=${DOMAIN//./-}
 CLOUDDNSZONE=$BASENAME-zone
-
-
-
 
 
 printf "${CYAN}Project Details${NC} \n"
@@ -97,48 +39,39 @@ printf "Domain:                     ${CYAN}$DOMAIN${NC} \n"
 printf "Bucket:                     ${CYAN}$BUCKET${NC} \n"
 printf "DNS Zone:                   ${CYAN}$CLOUDDNSZONE${NC} \n"
 
-
-
-
-printf "******************************************************************************** \n"
-printf "Tear Down the Load Balancer \n"
+section_open "Tear Down the Load Balancer"
 gcloud compute forwarding-rules delete $BASENAME-https-lb-forwarding-rule --global -q
 gcloud compute target-https-proxies delete $BASENAME-ssl-lb-proxy --global -q
 gcloud compute forwarding-rules delete $BASENAME-http-lb-forwarding-rule --global -q
 gcloud compute target-http-proxies delete $BASENAME-lb-proxy -q
 gcloud compute url-maps delete $BASENAME-lb -q
 gcloud compute backend-buckets delete $BASENAME-be -q
-printf "Tear Down the Load Balancer - done \n"
+section_close
 
-printf "******************************************************************************** \n"
-printf "Delete the SSL Certificate \n"
+section_open "Delete the SSL Certificate"
 gcloud compute ssl-certificates delete $BASENAME-cert -q
-printf "Delete the SSL Certificate - done \n"
+section_close
 
-printf "******************************************************************************** \n"
-printf "Delete the Cloud Stroage Bucket \n"
+section_open "Delete the Cloud Stroage Bucket \n"
 gsutil -m rm -rf gs://$BUCKET
 gsutil -m rb  gs://$BUCKET
-printf "Delete the Cloud Stroage Bucket - done \n"
+section_close
 
-printf "******************************************************************************** \n"
-printf "Removing all DNS Records \n"
+section_open "Removing all DNS Records"
 IP=$(gcloud compute addresses describe $BASENAME-ip --global --format="value(address)")
 gcloud dns record-sets transaction start --zone=$CLOUDDNSZONE
 gcloud dns record-sets transaction remove $IP --name=$DOMAIN \
    --ttl=60 --type=A --zone=$CLOUDDNSZONE
 gcloud dns record-sets transaction execute --zone=$CLOUDDNSZONE
-printf "Removing all DNS Records - done \n"
+section_close
 
-printf "******************************************************************************** \n"
-printf "Deleting Cloud DNS for your domain \n"
+section_open "Deleting Cloud DNS for your domain"
 gcloud dns managed-zones delete $CLOUDDNSZONE  -q
-printf "Deleting Cloud DNS for your domain - done \n"
+section_close
 
-printf "******************************************************************************** \n"
-printf "Delete the IP Address \n"
+section_open "Delete the IP Address"
 gcloud compute addresses delete $BASENAME-ip -q --global
-printf "Delete the IP Address - done \n"
+section_close
 
 
 printf "******************************************************************************** \n"

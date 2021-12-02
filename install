@@ -13,101 +13,23 @@
 #  limitations under the License.
 
 clear
+source globals
+
+
+
+
 PROJECT=$(gcloud config get-value project | xargs)
 
-BLACK='\033[0;30m'
-WHITE='\033[1;37m'
-
-CYAN='\033[0;36m'
-BCYAN='\033[1;36m'
-ONCYAN="\033[46m"
-UCYAN='\033[4;36m' 
-
-RED='\033[0;31m'
-BRED='\033[1;31m'
-ONRED="\033[41m"  
-  
-NC='\033[0m' # No Color
-DIVIDER="*****************************************************************************************************\n"
-
-# This will handle repetitive collection of data from the command line
-function collectParamters(){
-    local  __resultvar=$1
-    local ARG=$2
-    local VALUE=$2
-    local LABEL=$3
-    local DEFAULT=$4
-
-    if [[ $ARG ]]
-    then
-        VALUE=$ARG
-    else 
-        # Allow user to overide the VALUE. 
-        printf "Enter $LABEL"
-        if  [[ $DEFAULT ]]
-        then
-            VALUE=$DEFAULT
-            printf " [leave blank for ${CYAN}'${DEFAULT}'${NC}]"
-        fi
-        printf ": "
-        read USER_VALUE
-
-        if [[ $USER_VALUE ]]
-        then
-            VALUE=$USER_VALUE
-        fi
-
-    fi
-
-    if [[ !($VALUE) ]]
-    then
-        printf "\n${BRED}Sorry, $LABEL is mandatory.${NC}\n"
-        exit 1;
-    fi
-
-    eval $__resultvar="'$VALUE'"
-}
 
 
-# This will handle repetitive collection of data for the contact info
-function collectAddressInfo(){
-    local  __resultvar=$1
-    local LABEL=$2
-    local VALUE=$3
-    local NOTE=$4
+DESC="This process will create a simple yes or no question site using a Cloud Storage Bucket.
+Obviously once you create this Cloud Storage Bucket based website, you can host any kind 
+of content here."
 
-    printf "Enter your $LABEL [leave blank for ${CYAN}'${VALUE}'${NC}]\n"
+print_title "YESORNOSITE INSTALL" "$DESC" "5"
 
-    if [[ $NOTE ]]
-    then
-        printf "${ONCYAN}NOTE:${CYAN} $NOTE${NC}\n"
-    fi
 
-    printf ":"
-
-    
-    read USER_VALUE
-
-    if [[ $USER_VALUE ]]
-    then
-        VALUE=$USER_VALUE
-    fi
-
-    if [[ !($VALUE) ]]
-    then
-        printf "\n${BRED}Sorry, $LABEL is mandatory.${NC}\n"
-        exit 1;
-    fi
-
-    eval $__resultvar="'$VALUE'"
-}
-
-printf $DIVIDER
-printf "${BCYAN}YESORNOSITE INSTALL${NC} \n"
-printf "This process will create a simple yes or no question site using a Cloud Storage Bucket.\n"
-printf "Obviously once you create this Cloud Storage Bucket based website, you can host any kind \n"
-printf "of content here. \n"
-printf $DIVIDER
+PROJECT=$(gcloud config get-value project | xargs)
 
 collectParamters DOMAIN "$1" "the domain of the yes or no site" 
 collectParamters YESORNO "$2" "the answer for the site - yes or no" yes
@@ -128,13 +50,13 @@ printf "DNS Zone:                   ${CYAN}$CLOUDDNSZONE${NC} \n"
 
 
 
-printf $DIVIDER
-printf "Enabling services in your GCP project \n"
+
+section_open "Enabling services in your GCP project"
 gcloud services enable domains.googleapis.com 
 gcloud services enable storage.googleapis.com 
 gcloud services enable compute.googleapis.com 
 gcloud services enable dns.googleapis.com 
-printf "Enabling services in your GCP project - ${BCYAN}done${NC} \n"
+section_close
 
 
 INFO=$(gcloud beta domains registrations search-domains $DOMAIN  --format="csv(DOMAIN,AVAILABILITY,YEARLY_PRICE)" | grep "$DOMAIN," | grep ",AVAILABLE")
@@ -224,12 +146,12 @@ then
 fi
 
 
-printf $DIVIDER
-printf "Setting up Cloud DNS for your domain \n"
+
+section_open "Setting up Cloud DNS for your domain"
 gcloud dns managed-zones create $CLOUDDNSZONE \
    --description="A DNS Zone for managing $DOMAIN" \
    --dns-name=$DOMAIN -q
-printf "Setting up Cloud DNS for your domain - ${BCYAN}done${NC} \n"
+section_close
 
 # Added some logic to roll back if the process fails here.  Because if they are 
 # registering a domain and it fails, everything else will fail. 
@@ -237,8 +159,7 @@ printf "Setting up Cloud DNS for your domain - ${BCYAN}done${NC} \n"
 # dont own it. Then everything that depends on teh backend bucket fails. 
 # Also made it roll back the DNS setting. 
 FAILED=false
-printf $DIVIDER
-printf "Registering Domain \n"
+section_open "Registering Domain"
 if [[ !($ISOWNED) ]]
 then
     gcloud beta domains registrations register $DOMAIN  \
@@ -263,11 +184,9 @@ then
     exit
 fi
 
+section_close
 
-printf "Registering Domain - ${BCYAN}done${NC} \n"
-
-printf $DIVIDER
-printf "Waiting for domain to be active \n"
+section_open "Waiting for domain to be active"
 state=$(gcloud beta domains registrations describe $DOMAIN --format="value(state)")
 SECONDS=5
 i=0
@@ -292,33 +211,28 @@ do
 done
 
 printf " - up \n"
-printf "Waiting for domain to be active - ${BCYAN}done${NC}  \n"
+section_close
 
 
 
-printf $DIVIDER
-printf "Creating SSL Certificate \n"
+section_open "Creating SSL Certificate"
 gcloud compute ssl-certificates create $BASENAME-cert \
     --description="Cert for $BASENAME-microsite" \
     --domains=$DOMAIN --global
-printf "Creating SSL Certificate - ${BCYAN}done${NC} \n"
+section_close
 
-printf $DIVIDER
-printf "Creating External IP \n"
+section_open "Creating External IP"
 gcloud compute addresses create $BASENAME-ip \
 	--network-tier=PREMIUM --ip-version=IPV4 --global
-printf "Creating External IP - ${BCYAN}done${NC} \n"
+section_close
 
-printf $DIVIDER
-printf "Creating Storage Bucket \n"
+section_open "Creating Storage Bucket"
 gsutil mb gs://$BUCKET
 gsutil iam ch allUsers:objectViewer gs://$BUCKET 
 gsutil web set -m index.html -e 404.html gs://$BUCKET 
+section_close
 
-printf "Creating Storage Bucket - ${BCYAN}done${NC} \n"
-
-printf $DIVIDER
-printf "Copying site to the bucket \n"
+section_open "Copying site to the bucket"
 printf "Answer was: ${CYAN}$YESORNO${NC} \n"
 if [ "$YESORNO" = "no" ]
 then
@@ -327,29 +241,26 @@ else
     gsutil cp -r www/yes/* gs://$BUCKET/	
 fi
 
-printf "Copying site to the bucket - ${BCYAN}done${NC} \n"
+section_close
 
-printf $DIVIDER
-printf "Standing up Load Balancer \n"
+section_open "Standing up Load Balancer"
 gcloud compute backend-buckets create $BASENAME-be \
 --gcs-bucket-name=$DOMAIN
 
 gcloud compute url-maps create $BASENAME-lb  \
 --default-backend-bucket=$BASENAME-be
-printf "Standing up Load Balancer - ${BCYAN}done${NC} \n"
+section_close
 	
-printf $DIVIDER
-printf "Enabling HTTP \n"
+section_open "Enabling HTTP"
 gcloud compute target-http-proxies create $BASENAME-lb-proxy \
 --url-map=$BASENAME-lb
 
 gcloud compute forwarding-rules create $BASENAME-http-lb-forwarding-rule \
 --address=$BASENAME-ip --global --target-http-proxy=$BASENAME-lb-proxy \
 --ports=80
-printf "Enabling HTTP - ${BCYAN}done${NC} \n"
+section_close
 
-printf $DIVIDER
-printf "Enabling HTTPS \n"
+section_open "Enabling HTTPS"
 gcloud compute target-https-proxies create $BASENAME-ssl-lb-proxy \
 --url-map=$BASENAME-lb  --ssl-certificates $BASENAME-cert \
 --global-ssl-certificates --global
@@ -357,24 +268,22 @@ gcloud compute target-https-proxies create $BASENAME-ssl-lb-proxy \
 gcloud compute forwarding-rules create $BASENAME-https-lb-forwarding-rule \
 --address=$BASENAME-ip --global --target-https-proxy=$BASENAME-ssl-lb-proxy \
 --ports=443
-printf "Enabling HTTPS - ${BCYAN}done${NC} \n"
+section_close
 
 
 IP=$(gcloud compute addresses describe $BASENAME-ip --global --format="value(address)")
 
 
-printf $DIVIDER
-printf "Setting DNS A Record \n"
+section_open "Setting DNS A Record"
 gcloud dns record-sets transaction start --zone=$CLOUDDNSZONE
 
 gcloud dns record-sets transaction add $IP --name=$DOMAIN \
    --ttl=60 --type=A --zone=$CLOUDDNSZONE
 
 gcloud dns record-sets transaction execute --zone=$CLOUDDNSZONE
-printf "Setting DNS A Record - ${BCYAN}done${NC} \n"
+section_close
 
-printf $DIVIDER
-printf "Waiting for website to be serving http \n"
+section_open "Waiting for website to be serving http"
 STATUS=$(curl --write-out '%{http_code}' --resolve $DOMAIN:80:$IP --silent --output /dev/null http://$DOMAIN )
 DURATION=5
 i=0
@@ -401,8 +310,7 @@ done
 
 printf " - up \n"
 
-printf "Waiting for website to be serving http - ${BCYAN}done${NC} \n"
-
+section_close
 
 printf $DIVIDER
 printf "CONGRATS!!!!!!! \n"
