@@ -52,7 +52,7 @@ section_open "Delete the SSL Certificate"
 gcloud compute ssl-certificates delete $BASENAME-cert -q
 section_close
 
-section_open "Delete the Cloud Stroage Bucket \n"
+section_open "Delete the Cloud Stroage Bucket"
 gsutil -m rm -rf gs://$BUCKET
 gsutil -m rb  gs://$BUCKET
 section_close
@@ -74,7 +74,7 @@ gcloud compute addresses delete $BASENAME-ip -q --global
 section_close
 
 
-printf "******************************************************************************** \n"
+printf "$DIVIDER"
 printf "CONGRATS!!!!!!! \n"
 printf "You have deleted your app. The domain you registered will be yours until you transfer it or it expires.\n"
-printf "******************************************************************************** \n"
+printf "$DIVIDER"
