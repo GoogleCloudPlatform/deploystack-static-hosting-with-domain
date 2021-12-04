@@ -186,30 +186,7 @@ fi
 section_close
 
 section_open "Waiting for domain to be active"
-state=$(gcloud beta domains registrations describe $DOMAIN --format="value(state)")
-SECONDS=5
-i=0
-limit=60
-while [ "$state" != "ACTIVE" ]
-do
-    i=$(( $i + 1 ))
-    if [ $i -eq 1 ]
-    then
-        printf "Checking if domain is up"
-    fi
-
-    if [ $i -eq $limit ]
-    then
-        printf "Timed out \n"
-        exit 1
-    fi
-    
-    state=$(gcloud beta domains registrations describe $DOMAIN --format="value(state)")
-    printf "."
-    sleep $SECONDS
-done
-
-printf " - up \n"
+await_command state 5 60 "domainREADY" $DOMAIN 
 section_close
 
 
@@ -283,32 +260,7 @@ gcloud dns record-sets transaction execute --zone=$CLOUDDNSZONE
 section_close
 
 section_open "Waiting for website to be serving http"
-STATUS=$(curl --write-out '%{http_code}' --resolve $DOMAIN:80:$IP --silent --output /dev/null http://$DOMAIN )
-DURATION=5
-i=0
-limit=60
-while [ $STATUS -ne 200 ]
-do
-    i=$(( $i + 1 ))
-
-    if [ $i -eq $limit ]
-    then
-        printf "${BRED}Timed out${NC} \n"
-        exit 1
-    fi
-    if [ $i -eq 1 ]
-    then
-        printf "Checking if site is up"
-    fi
-    
-    
-    STATUS=$(curl --write-out '%{http_code}' --resolve $DOMAIN:80:$IP --silent --output /dev/null http://$DOMAIN )
-    printf "."
-    sleep $DURATION
-done
-
-printf " - up \n"
-
+await_command STATUS 5 60 "url200" $DOMAIN $IP
 section_close
 
 printf $DIVIDER

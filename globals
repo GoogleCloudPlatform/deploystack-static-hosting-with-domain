@@ -81,43 +81,168 @@ function print_title(){
 	printf "$2\n"
 	if [ $3 = 1 ]
 	then
-		printf "It's going to take around 1 min \n"
+		printf "It's going to take around ${CYAN}1 min${NC} \n"
 	else
-		printf "It's going to take around $3 mins \n"
+		printf "It's going to take around ${CYAN}$3 mins${NC} \n"
 	fi
 	
 	printf "$DIVIDER"
 }
 
-# This will handle repetitive collection of data for the contact info
-function collectAddressInfo(){
+function get_project_id(){
     local  __resultvar=$1
-    local LABEL=$2
-    local VALUE=$3
-    local NOTE=$4
+    VALUE=$(gcloud config get-value project | xargs)
+    eval $__resultvar="'$VALUE'"
+}
 
-    printf "Enter your $LABEL [leave blank for ${CYAN}'${VALUE}'${NC}]\n"
+function get_project_number(){
+    local  __resultvar=$1
+    local PRO=$2
 
-    if [[ $NOTE ]]
-    then
-        printf "${ONCYAN}NOTE:${CYAN} $NOTE${NC}\n"
-    fi
+    VALUE=$(gcloud projects list --filter="$PRO" --format="value(PROJECT_NUMBER)" | xargs)	
+    eval $__resultvar="'$VALUE'"
+}
 
-    printf ":"
+function get_build_serviceaccount(){
+    local  __resultvar=$1
+    local NUMBER=$2
+    VALUE=$NUMBER@cloudbuild.gserviceaccount.com
+    eval $__resultvar="'$VALUE'"
+}
 
+function get_compute_serviceaccount(){
+    local  __resultvar=$1
+    local NUMBER=$2
+    VALUE=$NUMBER-compute@developer.gserviceaccount.com
+    eval $__resultvar="'$VALUE'"
+}
+
+function get_run_url(){
+    local  __resultvar=$1
+    local NAME=$2
+    local REGION=$3
+    VALUE=$(gcloud run services describe $NAME --region=$REGION --format="value(status.url)" | xargs)
+    eval $__resultvar="'$VALUE'"
+}
+
+
+function await_command () {
+    local  __resultvar=$1
+    local DURATION=$2
+    local limit=$3
+    local OP=$4
+    local NAME=$5
+    local REGION=$6
+    local DOMAIN=$5
+    local IP=$6
     
-    read USER_VALUE
 
-    if [[ $USER_VALUE ]]
+
+    case $OP in
+        "sqlIP")
+            COMMAND="gcloud beta sql instances describe"
+            FORMAT="--format='value(ipAddresses[0].ipAddress)'"
+            MESSAGE="Checking if IP is available"
+            AWAITING="!BLANK"
+        ;;
+
+        "sqlREADY")
+            COMMAND="gcloud beta sql instances describe"
+            FORMAT="--format='value(state)'"
+            MESSAGE="Checking if database is up"
+            AWAITING="RUNNABLE"
+        ;;
+
+        "redisIP")
+            COMMAND="gcloud redis instances describe"
+            FORMAT="--region=$REGION --format='value(host)'"
+            MESSAGE="Checking if IP is available"
+            AWAITING="!BLANK"
+        ;;
+
+        "domainREADY")
+            COMMAND="gcloud beta domains registrations describe"
+            FORMAT="--format='value(state)'"
+            MESSAGE="Checking if domain is active "
+            AWAITING="ACTIVE"
+        ;;
+
+         "url200")
+            COMMAND="curl --write-out '%{http_code}' --resolve $DOMAIN:80:$IP --silent --output /dev/null http://$DOMAIN"
+            FORMAT=""
+            MESSAGE="Checking if url is returning STATUS OK "
+            AWAITING=200
+            NAME=""
+        ;;
+
+        *)
+            echo "Unknown Operation Type"
+            exit 1
+        ;;
+    esac
+
+    ERROR=false
+    VALUE=$(eval $COMMAND $NAME $FORMAT) || ERROR=true
+
+    if [ "$ERROR" = true ]
     then
-        VALUE=$USER_VALUE
+        printf "Command to poll errored. Exiting\n"
+        return 1
     fi
 
-    if [[ !($VALUE) ]]
+    i=0
+    if [ "$AWAITING" = "!BLANK" ]
     then
-        printf "\n${BRED}Sorry, $LABEL is mandatory.${NC}\n"
-        exit 1;
-    fi
+        while [ "$VALUE" = "" ]
+        do
 
+            i=$(( $i + 1 ))
+            if [ $i -eq 1 ]
+            then
+                printf $MESSAGE
+            fi
+
+            if [ $i -eq $limit ]
+            then
+                printf "Timed out \n"
+                return 1
+            fi
+
+            VALUE=$(eval $COMMAND $NAME $FORMAT) || ERROR=true
+            if [ "$ERROR" = true ]
+            then
+                printf "Command to poll errored. Exiting\n"
+                return 1
+            fi
+            printf "."
+            sleep $DURATION
+        done
+    else
+        while [ "$VALUE" != "$AWAITING" ]
+        do
+            i=$(( $i + 1 ))
+            if [ $i -eq 1 ]
+            then
+                printf $MESSAGE
+            fi
+
+            if [ $i -eq $limit ]
+            then
+                printf "Timed out \n"
+                return 1
+            fi
+
+            VALUE=$(eval $COMMAND $NAME $FORMAT) || ERROR=true
+
+            if [ "$ERROR" = true ]
+            then
+                printf "Command to poll errored. Exiting\n"
+                return 1
+            fi
+            printf "."
+            sleep $DURATION
+        done
+    fi
+    printf "\n"
     eval $__resultvar="'$VALUE'"
 }
