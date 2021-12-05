@@ -1,0 +1,72 @@
+clear
+source globals
+DOMAIN=$APPINABOX_YESORNOSITE_DOMAIN
+ANSWER="yes"
+get_project_id PROJECT
+
+BUCKET=$DOMAIN
+BASENAME=${DOMAIN//./-}
+CLOUDDNSZONE=$BASENAME-zone
+
+gcloud config set project ${PROJECT}
+
+./install $DOMAIN $ANSWER $PROJECT 
+
+# Check on things
+section_open "Test Load Balancer parts exist"
+evalTest 'gcloud compute forwarding-rules describe $BASENAME-https-lb-forwarding-rule --global --format="value(name)"' $BASENAME-https-lb-forwarding-rule
+evalTest 'gcloud compute target-https-proxies describe $BASENAME-ssl-lb-proxy --global --format="value(name)"' $BASENAME-ssl-lb-proxy
+evalTest 'gcloud compute forwarding-rules describe  $BASENAME-http-lb-forwarding-rule --global --format="value(name)"'  $BASENAME-http-lb-forwarding-rule
+evalTest 'gcloud compute target-http-proxies describe $BASENAME-lb-proxy  --global --format="value(name)"' $BASENAME-lb-proxy 
+evalTest 'gcloud compute url-maps describe $BASENAME-lb --global --format="value(name)"' $BASENAME-lb
+evalTest 'gcloud compute backend-buckets describe  $BASENAME-be --format="value(name)"'  $BASENAME-be
+section_close
+
+section_open "Test SSL cert exist"
+evalTest 'gcloud compute ssl-certificates describe $BASENAME-cert --format="value(name)"'  $BASENAME-cert
+section_close
+
+section_open "Test the Cloud Storage Bucket exists"
+evalTest 'gsutil ls gs://$DOMAIN | grep 404 '  ""
+section_close
+
+section_open "Test the IP Address exists"
+evalTest 'gcloud compute addresses describe $BASENAME-ip --global --format="value(name)"'  $BASENAME-ip
+section_close
+
+section_open "Test DNS Records exist"
+IP=$(gcloud compute addresses describe $BASENAME-ip --global --format="value(address)")
+evalTest 'gcloud dns record-sets describe $DOMAIN --zone $CLOUDDNSZONE --type A --format="value(DATA)"' $IP
+
+
+./uninstall $DOMAIN $PROJECT 
+
+section_open "Test Load Balancer parts don't exist"
+evalTest 'gcloud compute forwarding-rules describe $BASENAME-https-lb-forwarding-rule --global --format="value(name)"' "EXPECTERROR"
+evalTest 'gcloud compute target-https-proxies describe $BASENAME-ssl-lb-proxy --global --format="value(name)"' "EXPECTERROR"
+evalTest 'gcloud compute forwarding-rules describe  $BASENAME-http-lb-forwarding-rule --global --format="value(name)"' "EXPECTERROR"
+evalTest 'gcloud compute target-http-proxies describe $BASENAME-lb-proxy  --global --format="value(name)"' "EXPECTERROR"
+evalTest 'gcloud compute url-maps describe $BASENAME-lb --global --format="value(name)"' "EXPECTERROR"
+evalTest 'gcloud compute backend-buckets describe  $BASENAME-be --format="value(name)"'  "EXPECTERROR"
+section_close
+
+section_open "Test SSL cert doesnt exist"
+evalTest 'gcloud compute ssl-certificates describe $BASENAME-cert --format="value(name)"'  "EXPECTERROR"
+section_close
+
+section_open "Test the Cloud Storage Bucket doesnt exist"
+evalTest 'gsutil ls gs://$DOMAIN | grep 404 | xargs'  "EXPECTERROR"
+section_close
+
+section_open "Test the IP Address doesnt exist"
+evalTest 'gcloud compute addresses describe $BASENAME-ip --global --format="value(name)"'  "EXPECTERROR"
+section_close
+
+section_open "Test DNS Records dont exist"
+evalTest 'gcloud dns record-sets describe $DOMAIN --zone $CLOUDDNSZONE --type A --format="value(DATA)"' "EXPECTERROR"
+
+
+printf "$DIVIDER"
+printf "CONGRATS!!!!!!! \n"
+printf "You got the end the of your test with everything working. \n"
+printf "$DIVIDER"

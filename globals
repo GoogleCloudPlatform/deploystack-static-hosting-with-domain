@@ -246,3 +246,33 @@ function await_command () {
     printf "\n"
     eval $__resultvar="'$VALUE'"
 }
+
+
+function evalTest(){
+    local command=$1
+    local expected=$2
+
+    local ERR=""
+    got=$(eval $command 2> errFile)
+    ERR=$(<errFile)
+
+    if [ ${#ERR} -gt 0 ]
+    then
+        if [ "$expected" = "EXPECTERROR" ]
+        then
+            printf "Expected Error thrown \n"
+            return
+        fi
+
+         printf "Halting - error: '$ERR'  \n"
+         exit 1
+    fi
+
+    if [ "$got" != "$expected" ]
+    then
+        printf "Halting: '$got'  \n"
+        exit 1
+    fi
+
+    printf "$expected is ok\n"
+}

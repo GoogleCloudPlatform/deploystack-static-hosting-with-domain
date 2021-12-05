@@ -18,7 +18,6 @@ source globals
 
 
 
-PROJECT=$(gcloud config get-value project | xargs)
 
 
 
@@ -29,7 +28,7 @@ of content here."
 print_title "YESORNOSITE INSTALL" "$DESC" "5"
 
 
-PROJECT=$(gcloud config get-value project | xargs)
+get_project_id PROJECT
 
 collectParamters DOMAIN "$1" "the domain of the yes or no site" 
 collectParamters YESORNO "$2" "the answer for the site - yes or no" yes
