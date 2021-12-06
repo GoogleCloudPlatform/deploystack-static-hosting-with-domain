@@ -10,6 +10,6 @@ https://console.cloud.google.com/projectcreate
 
 You will be prompted by the install script for the project id. 
 
-To un the application:
+To run the application:
 
 ./install

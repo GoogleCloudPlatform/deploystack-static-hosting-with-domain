@@ -62,6 +62,39 @@ function collectParamters(){
     eval $__resultvar="'$VALUE'"
 }
 
+# This will handle repetitive collection of data for the contact info
+function collectAddressInfo(){
+    local  __resultvar=$1
+    local LABEL=$2
+    local VALUE=$3
+    local NOTE=$4
+
+    printf "Enter your $LABEL [leave blank for ${CYAN}'${VALUE}'${NC}]\n"
+
+    if [[ $NOTE ]]
+    then
+        printf "${ONCYAN}NOTE:${CYAN} $NOTE${NC}\n"
+    fi
+
+    printf ":"
+
+
+    read USER_VALUE
+
+    if [[ $USER_VALUE ]]
+    then
+        VALUE=$USER_VALUE
+    fi
+
+    if [[ !($VALUE) ]]
+    then
+        printf "\n${BRED}Sorry, $LABEL is mandatory.${NC}\n"
+        exit 1;
+    fi
+
+    eval $__resultvar="'$VALUE'"
+}
+
 function section_open(){
       section_description=$1
       printf "$DIVIDER"

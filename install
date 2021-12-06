@@ -62,6 +62,7 @@ then
     DOMAINLISTED=$(gcloud domains list-user-verified | grep $DOMAIN | xargs)
 
 
+    # Sneaky way of getting around ownersip issues for the service account. 
     if [ "$4" == "IGNOREOWNERSHIPFORTESTING" ]
     then
         DOMAINLISTED="IGNOREOWNERSHIPFORTESTING"
@@ -263,9 +264,12 @@ gcloud dns record-sets transaction add $IP --name=$DOMAIN \
 gcloud dns record-sets transaction execute --zone=$CLOUDDNSZONE
 section_close
 
+if [[ !($4) ]]
+then
 section_open "Waiting for website to be serving http"
 await_command STATUS 5 60 "url200" $DOMAIN $IP
 section_close
+fi
 
 printf $DIVIDER
 printf "CONGRATS!!!!!!! \n"
