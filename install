@@ -17,10 +17,6 @@ source globals
 
 
 
-
-
-
-
 DESC="This process will create a simple yes or no question site using a Cloud Storage Bucket.
 Obviously once you create this Cloud Storage Bucket based website, you can host any kind 
 of content here."
@@ -64,6 +60,13 @@ if [[ !($INFO) ]]
 then
 
     DOMAINLISTED=$(gcloud domains list-user-verified | grep $DOMAIN | xargs)
+
+
+    if [ "$4" == "IGNOREOWNERSHIPFORTESTING" ]
+    then
+        DOMAINLISTED="IGNOREOWNERSHIPFORTESTING"
+    fi
+
     if [[ !($DOMAINLISTED) ]]
     then
         printf "\nSorry, domain is not available, please try another \n"
@@ -73,6 +76,8 @@ then
     printf "\nDomain is not available, but we can verify that you own it, so we can use it. \n"
     ISOWNED=true
 fi
+
+
 
 if [[ !($ISOWNED) ]]
 then
