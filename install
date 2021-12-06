@@ -93,7 +93,7 @@ then
     if [[ !($4) ]]
     then
         printf $DIVIDER
-        printf "${BRED}Buying a domain is not reversable, saying 'y' will inccur a charge of ${BCYAN}$COST${NC} ${BRED}for ${BCYAN}$DOMAIN${NC}${BRED}. Continue?${NC}\n"
+        printf "${BRED}Buying a domain is not reversable, saying 'y' will incur a charge of ${BCYAN}$COST${NC} ${BRED}for ${BCYAN}$DOMAIN${NC}${BRED}. Continue?${NC}\n"
         printf "${ONCYAN}(y or n)${NC} ?"
         read REPLY
         if [[ ! $REPLY =~ ^[Yy]$ ]]
