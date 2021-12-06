@@ -113,35 +113,35 @@ then
         printf "This will create a file, so that you never have to do it again. \n"
         printf "This file will only exist locally, or in your Cloud Shell environment.  \n"
 
-        EMAIL=$GITHUB_USER
-        collectAddressInfo EMAIL "email" $EMAIL 
+        EMAIL="$GITHUB_USER"
+        collectAddressInfo EMAIL "email" "$EMAIL" 
 
         PHONE="+14155551234"
-        collectAddressInfo PHONE "phone number" $PHONE "Please enter with country code - +1 555 555 5555 for US for example"
+        collectAddressInfo PHONE "phone number" "$PHONE" "Please enter with country code - +1 555 555 5555 for US for example"
 
-        COUNTRY=US
-        collectAddressInfo COUNTRY "country code" $COUNTRY
+        COUNTRY="US"
+        collectAddressInfo COUNTRY "country code" "$COUNTRY"
 
-        POSTALCODE=95105
-        collectAddressInfo POSTALCODE "postal code" $POSTALCODE
+        POSTALCODE="95105"
+        collectAddressInfo POSTALCODE "postal code" "$POSTALCODE"
 
         STATE=CA
-        collectAddressInfo STATE "state or administrative area" $STATE
+        collectAddressInfo STATE "state or administrative area" "$STATE"
 
         CITY="San Francisco"
-        collectAddressInfo CITY "city" $CITY
+        collectAddressInfo CITY "city" "$CITY"
 
         ADDRESS="345 Spear Street"
-        collectAddressInfo ADDRESS "address" $ADDRESS
+        collectAddressInfo ADDRESS "address" "$ADDRESS"
 
         RECIPIENT="Googler"
-        collectAddressInfo RECIPIENT "recipient" $RECIPIENT
+        collectAddressInfo RECIPIENT "name" "$RECIPIENT"
 
         printf "allContacts: \n" > contact.yaml
         printf "  email: '$EMAIL' \n" >> contact.yaml
         printf "  phoneNumber: $PHONE' \n" >> contact.yaml
         printf "  postalAddress: \n" >> contact.yaml
-        printf "    regionCode: '$COUNTY' \n" >> contact.yaml
+        printf "    regionCode: '$COUNTRY' \n" >> contact.yaml
         printf "    postalCode: '$POSTALCODE' \n" >> contact.yaml
         printf "    administrativeArea: '$STATE' \n" >> contact.yaml
         printf "    locality: '$CITY' \n" >> contact.yaml

@@ -66,10 +66,17 @@ function collectParamters(){
 function collectAddressInfo(){
     local  __resultvar=$1
     local LABEL=$2
-    local VALUE=$3
+    local VALUE="$3"
     local NOTE=$4
 
-    printf "Enter your $LABEL [leave blank for ${CYAN}'${VALUE}'${NC}]\n"
+    printf "Enter your $LABEL"
+
+    if  [[ "$VALUE" != "" ]]
+    then
+        printf " [leave blank for ${CYAN}'${VALUE}'${NC}]"
+    fi
+    
+    printf "\n"
 
     if [[ $NOTE ]]
     then
@@ -83,7 +90,7 @@ function collectAddressInfo(){
 
     if [[ $USER_VALUE ]]
     then
-        VALUE=$USER_VALUE
+        VALUE="$USER_VALUE"
     fi
 
     if [[ !($VALUE) ]]
