@@ -184,6 +184,7 @@ function await_command () {
             FORMAT="--format='value(ipAddresses[0].ipAddress)'"
             MESSAGE="Checking if IP is available"
             AWAITING="!BLANK"
+            ERROREXPECTED=false
         ;;
 
         "sqlREADY")
@@ -191,6 +192,7 @@ function await_command () {
             FORMAT="--format='value(state)'"
             MESSAGE="Checking if database is up"
             AWAITING="RUNNABLE"
+            ERROREXPECTED=false
         ;;
 
         "redisIP")
@@ -198,6 +200,15 @@ function await_command () {
             FORMAT="--region=$REGION --format='value(host)'"
             MESSAGE="Checking if IP is available"
             AWAITING="!BLANK"
+            ERROREXPECTED=false
+        ;;
+
+        "redisGone")
+            COMMAND="gcloud redis instances describe"
+            FORMAT="--region=$REGION --format='value(host)'"
+            MESSAGE="Checking if Redis server is gone"
+            AWAITING=""
+            ERROREXPECTED=true
         ;;
 
         "domainREADY")
@@ -205,6 +216,7 @@ function await_command () {
             FORMAT="--format='value(state)'"
             MESSAGE="Checking if domain is active "
             AWAITING="ACTIVE"
+            ERROREXPECTED=false
         ;;
 
          "url200")
@@ -213,6 +225,7 @@ function await_command () {
             MESSAGE="Checking if url is returning STATUS OK "
             AWAITING=200
             NAME=""
+            ERROREXPECTED=false
         ;;
 
         *)
@@ -226,6 +239,12 @@ function await_command () {
 
     if [ "$ERROR" = true ]
     then
+        if [ "$ERROREXPECTED" == true ]
+        then 
+            printf "\n"
+            eval $__resultvar=""
+            return 1
+        fi
         printf "Command to poll errored. Exiting\n"
         return 1
     fi
@@ -251,6 +270,12 @@ function await_command () {
             VALUE=$(eval $COMMAND $NAME $FORMAT) || ERROR=true
             if [ "$ERROR" = true ]
             then
+                if [ "$ERROREXPECTED" == true ]
+                then 
+                    printf "\n"
+                    eval $__resultvar="''"
+                    return 1
+                fi
                 printf "Command to poll errored. Exiting\n"
                 return 1
             fi
@@ -276,6 +301,12 @@ function await_command () {
 
             if [ "$ERROR" = true ]
             then
+                if [ "$ERROREXPECTED" == true ]
+                then 
+                    printf "\n"
+                    eval $__resultvar="''"
+                    return 1
+                fi
                 printf "Command to poll errored. Exiting\n"
                 return 1
             fi
@@ -315,4 +346,11 @@ function evalTest(){
     fi
 
     printf "$expected is ok\n"
+}
+
+
+function randomString(){
+    local  __resultvar=$1
+    local VALUE=$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 13 ; echo)
+    eval $__resultvar="'$VALUE'"
 }
