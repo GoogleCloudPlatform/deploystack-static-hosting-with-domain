@@ -24,24 +24,23 @@ of content here."
 print_title "YESORNOSITE INSTALL" "$DESC" "5"
 
 
-get_project_id PROJECT
+
 
 collectParamters DOMAIN "$1" "the domain of the yes or no site" 
 collectParamters YESORNO "$2" "the answer for the site - yes or no" yes
-collectParamters PROJECT "$3" "the id of the project that will host the site" "$PROJECT" 
-
-gcloud config set project ${PROJECT}
+handleProject PROJECT "$3"
 
 BUCKET=$DOMAIN
 BASENAME=${DOMAIN//./-}
 CLOUDDNSZONE=$BASENAME-zone
 
-printf $DIVIDER
-printf "${CYAN}Project Details${NC} \n"
-printf "Project ID:                 ${CYAN}$PROJECT${NC} \n"
-printf "Domain:                     ${CYAN}$DOMAIN${NC} \n"
-printf "Bucket:                     ${CYAN}$BUCKET${NC} \n"
-printf "DNS Zone:                   ${CYAN}$CLOUDDNSZONE${NC} \n"
+projectDetails "
+Project ID:,$PROJECT
+Domain:,$DOMAIN
+Bucket:,$BUCKET
+DNS Zone:,$CLOUDDNSZONE
+"
+
 
 
 
@@ -54,8 +53,7 @@ gcloud services enable dns.googleapis.com
 section_close
 
 
-INFO=$(gcloud beta domains registrations search-domains $DOMAIN  --format="csv(DOMAIN,AVAILABILITY,YEARLY_PRICE)" | grep "$DOMAIN," | grep ",AVAILABLE")
-
+INFO=$(gcloud beta domains registrations search-domains $DOMAIN  --format="csv(DOMAIN,AVAILABILITY,YEARLY_PRICE)" | grep "^$DOMAIN," | grep ",AVAILABLE")
 if [[ !($INFO) ]]
 then
 
