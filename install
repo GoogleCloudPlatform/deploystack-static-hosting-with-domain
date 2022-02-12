@@ -14,7 +14,7 @@
 
 clear
 source globals
-
+OUTPUTFILE="appinabox-install.sh"
 
 
 DESC="This process will create a simple yes or no question site using a Cloud Storage Bucket.
@@ -42,14 +42,11 @@ DNS Zone:,$CLOUDDNSZONE
 "
 
 
-
-
-
 section_open "Enabling services in your GCP project"
-gcloud services enable domains.googleapis.com 
-gcloud services enable storage.googleapis.com 
-gcloud services enable compute.googleapis.com 
-gcloud services enable dns.googleapis.com 
+    prGcloud "gcloud services enable domains.googleapis.com" 
+    prGcloud "gcloud services enable storage.googleapis.com" 
+    prGcloud "gcloud services enable compute.googleapis.com" 
+    prGcloud "gcloud services enable dns.googleapis.com" 
 section_close
 
 
@@ -150,9 +147,9 @@ fi
 
 
 section_open "Setting up Cloud DNS for your domain"
-gcloud dns managed-zones create $CLOUDDNSZONE \
-   --description="A DNS Zone for managing $DOMAIN" \
-   --dns-name=$DOMAIN -q
+    prGcloud "gcloud dns managed-zones create $CLOUDDNSZONE 
+    --description=\"A DNS Zone for managing $DOMAIN\" 
+    --dns-name=$DOMAIN -q"
 section_close
 
 # Added some logic to roll back if the process fails here.  Because if they are 
@@ -164,11 +161,11 @@ FAILED=false
 section_open "Registering Domain"
 if [[ !($ISOWNED) ]]
 then
-    gcloud beta domains registrations register $DOMAIN  \
-    --contact-privacy=private-contact-data --cloud-dns-zone=$CLOUDDNSZONE \
-    --yearly-price=$COST --contact-data-from-file=contact.yaml || FAILED=true
+    prGcloud "gcloud beta domains registrations register $DOMAIN  
+    --contact-privacy=private-contact-data --cloud-dns-zone=$CLOUDDNSZONE 
+    --yearly-price=\"$COST\" --contact-data-from-file=contact.yaml" || FAILED=true
 else
-    gcloud beta domains registrations configure dns $DOMAIN --cloud-dns-zone=$CLOUDDNSZONE
+    prGcloud "gcloud beta domains registrations configure dns $DOMAIN --cloud-dns-zone=$CLOUDDNSZONE"
 fi
 
 
@@ -195,58 +192,58 @@ section_close
 
 
 section_open "Creating SSL Certificate"
-gcloud compute ssl-certificates create $BASENAME-cert \
-    --description="Cert for $BASENAME-microsite" \
-    --domains=$DOMAIN --global
+    prGcloud "gcloud compute ssl-certificates create $BASENAME-cert 
+        --description=\"Cert for $BASENAME-microsite\" 
+        --domains=$DOMAIN --global"
 section_close
 
 section_open "Creating External IP"
-gcloud compute addresses create $BASENAME-ip \
-	--network-tier=PREMIUM --ip-version=IPV4 --global
+    prGcloud "gcloud compute addresses create $BASENAME-ip 
+    --network-tier=PREMIUM --ip-version=IPV4 --global"
 section_close
 
 section_open "Creating Storage Bucket"
-gsutil mb gs://$BUCKET
-gsutil iam ch allUsers:objectViewer gs://$BUCKET 
-gsutil web set -m index.html -e 404.html gs://$BUCKET 
+    prGcloud "gsutil mb gs://$BUCKET"
+    prGcloud "gsutil iam ch allUsers:objectViewer gs://$BUCKET" 
+    prGcloud "gsutil web set -m index.html -e 404.html gs://$BUCKET" 
 section_close
 
 section_open "Copying site to the bucket"
 printf "Answer was: ${CYAN}$YESORNO${NC} \n"
 if [ "$YESORNO" = "no" ]
 then
-    gsutil cp -r www/no/* gs://$BUCKET/	
+    prGcloud "gsutil cp -r www/no/* gs://$BUCKET/"	
 else
-    gsutil cp -r www/yes/* gs://$BUCKET/	
+   prGcloud " gsutil cp -r www/yes/* gs://$BUCKET/"	
 fi
 
 section_close
 
 section_open "Standing up Load Balancer"
-gcloud compute backend-buckets create $BASENAME-be \
---gcs-bucket-name=$DOMAIN
+    prGcloud "gcloud compute backend-buckets create $BASENAME-be 
+    --gcs-bucket-name=$DOMAIN"
 
-gcloud compute url-maps create $BASENAME-lb  \
---default-backend-bucket=$BASENAME-be
+    prGcloud "gcloud compute url-maps create $BASENAME-lb  
+    --default-backend-bucket=$BASENAME-be"
 section_close
 	
 section_open "Enabling HTTP"
-gcloud compute target-http-proxies create $BASENAME-lb-proxy \
---url-map=$BASENAME-lb
+prGcloud "gcloud compute target-http-proxies create $BASENAME-lb-proxy 
+--url-map=$BASENAME-lb"
 
-gcloud compute forwarding-rules create $BASENAME-http-lb-forwarding-rule \
---address=$BASENAME-ip --global --target-http-proxy=$BASENAME-lb-proxy \
---ports=80
+prGcloud "gcloud compute forwarding-rules create $BASENAME-http-lb-forwarding-rule 
+    --address=$BASENAME-ip --global --target-http-proxy=$BASENAME-lb-proxy 
+    --ports=80"
 section_close
 
 section_open "Enabling HTTPS"
-gcloud compute target-https-proxies create $BASENAME-ssl-lb-proxy \
---url-map=$BASENAME-lb  --ssl-certificates $BASENAME-cert \
---global-ssl-certificates --global
+    prGcloud "gcloud compute target-https-proxies create $BASENAME-ssl-lb-proxy 
+    --url-map=$BASENAME-lb  --ssl-certificates $BASENAME-cert 
+    --global-ssl-certificates --global"
 
-gcloud compute forwarding-rules create $BASENAME-https-lb-forwarding-rule \
---address=$BASENAME-ip --global --target-https-proxy=$BASENAME-ssl-lb-proxy \
---ports=443
+    prGcloud "gcloud compute forwarding-rules create $BASENAME-https-lb-forwarding-rule 
+    --address=$BASENAME-ip --global --target-https-proxy=$BASENAME-ssl-lb-proxy 
+    --ports=443"
 section_close
 
 
@@ -254,12 +251,12 @@ IP=$(gcloud compute addresses describe $BASENAME-ip --global --format="value(add
 
 
 section_open "Setting DNS A Record"
-gcloud dns record-sets transaction start --zone=$CLOUDDNSZONE
+    prGcloud "gcloud dns record-sets transaction start --zone=$CLOUDDNSZONE"
 
-gcloud dns record-sets transaction add $IP --name=$DOMAIN \
-   --ttl=60 --type=A --zone=$CLOUDDNSZONE
+    prGcloud "gcloud dns record-sets transaction add $IP --name=$DOMAIN 
+   --ttl=60 --type=A --zone=$CLOUDDNSZONE"
 
-gcloud dns record-sets transaction execute --zone=$CLOUDDNSZONE
+    prGcloud "gcloud dns record-sets transaction execute --zone=$CLOUDDNSZONE"
 section_close
 
 if [[ !($4) ]]
