@@ -46,7 +46,8 @@ section_open "Enabling services in your GCP project"
     prGcloud "gcloud services enable domains.googleapis.com" 
     prGcloud "gcloud services enable storage.googleapis.com" 
     prGcloud "gcloud services enable compute.googleapis.com" 
-    prGcloud "gcloud services enable dns.googleapis.com" 
+    prGcloud "gcloud services enable dns.googleapis.com"
+    prGcloud "gcloud services enable appengine.googleapis.com" 
 section_close
 
 
