@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# If you are getting errors in tests, make sure that you: 
+# * Make sure you have a domain set aside for _APPINABOX_YESORNOSITE_DOMAIN
+# * Properly set the value for _APPINABOX_YESORNOSITE_DOMAIN. 
+# * Cloud Build Service account must be added to the list of owners of that domain  
+
 steps:
    - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
      entrypoint: bash

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 source globals
+OUTPUTFILE="test.sh"
 DOMAIN=$APPINABOX_YESORNOSITE_DOMAIN
 ANSWER="yes"
 get_project_id PROJECT

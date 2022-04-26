@@ -164,9 +164,9 @@ if [[ !($ISOWNED) ]]
 then
     prGcloud "gcloud beta domains registrations register $DOMAIN  
     --contact-privacy=private-contact-data --cloud-dns-zone=$CLOUDDNSZONE 
-    --yearly-price=\"$COST\" --contact-data-from-file=contact.yaml" || FAILED=true
+    --yearly-price=\"$COST\" --contact-data-from-file=contact.yaml -q" || FAILED=true
 else
-    prGcloud "gcloud beta domains registrations configure dns $DOMAIN --cloud-dns-zone=$CLOUDDNSZONE"
+    prGcloud "gcloud beta domains registrations configure dns $DOMAIN --cloud-dns-zone=$CLOUDDNSZONE -q "
 fi
 
 
