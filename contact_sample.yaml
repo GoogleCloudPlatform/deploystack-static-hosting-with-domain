@@ -14,7 +14,7 @@
 
 allContacts: 
   email: 'you@example.com' 
-  phoneNumber: +1 555 555 1234' 
+  phoneNumber: '+1 555 555 1234' 
   postalAddress: 
     regionCode: 'US' 
     postalCode: '94105' 
