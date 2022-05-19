@@ -6,7 +6,9 @@ case $1 in
     go run main.go
     terraform init
     terraform apply -auto-approve -var-file=terraform.tfvars
-    # TODO Add message processing and terraform output
+    if [ -f "messages/success.txt" ]; then
+        cat messages/success.txt
+    fi
     ;;
 
   "uninstall")

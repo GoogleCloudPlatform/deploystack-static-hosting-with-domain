@@ -115,6 +115,7 @@ resource "google_storage_bucket_iam_binding" "policy" {
   members = [
     "allUsers",
   ]
+  depends_on = [google_storage_bucket.http_bucket]
 }
 
 
@@ -134,12 +135,14 @@ resource "google_compute_backend_bucket" "be" {
   project     = var.project_id
   name        = "${local.basename}-be"
   bucket_name = google_storage_bucket.http_bucket.name
+  depends_on = [google_storage_bucket.http_bucket]
 }
 
 resource "google_compute_url_map" "lb" {
   project         = var.project_id
   name            = "${local.basename}-lb"
   default_service = google_compute_backend_bucket.be.id
+   depends_on = [google_compute_backend_bucket.be]
 }
 
 # Enabling HTTP
@@ -147,6 +150,7 @@ resource "google_compute_target_http_proxy" "lb-proxy" {
   project = var.project_id
   name    = "${var.basename}-lb-proxy"
   url_map = google_compute_url_map.lb.id
+  depends_on = [google_compute_url_map.lb]
 }
 
 resource "google_compute_forwarding_rule" "http-lb-forwarding-rule" {
@@ -158,6 +162,7 @@ resource "google_compute_forwarding_rule" "http-lb-forwarding-rule" {
   port_range            = "80"
   target                = google_compute_target_http_proxy.lb-proxy.id
   ip_address            = google_compute_global_address.ip.id
+  depends_on = [google_compute_target_http_proxy.lb-proxy]
 }
 
 
@@ -168,6 +173,7 @@ resource "google_compute_target_https_proxy" "ssl-lb-proxy" {
   name             = "${var.basename}-ssl-lb-proxy"
   url_map          = google_compute_url_map.lb.id
   ssl_certificates = [google_compute_managed_ssl_certificate.cert.id]
+  depends_on = [google_compute_url_map.lb,google_compute_managed_ssl_certificate.cert ]
 }
 
 resource "google_compute_forwarding_rule" "https-lb-forwarding-rule" {
@@ -179,6 +185,7 @@ resource "google_compute_forwarding_rule" "https-lb-forwarding-rule" {
   port_range            = "443"
   target                = google_compute_target_https_proxy.ssl-lb-proxy.id
   ip_address            = google_compute_global_address.ip.id
+  depends_on = [google_compute_target_https_proxy.ssl-lb-proxy]
 }
 
 
@@ -193,4 +200,16 @@ resource "google_dns_record_set" "a" {
 
 
   rrdatas = [google_compute_global_address.ip.address]
+  depends_on = [google_compute_global_address.ip]
+}
+
+
+output "http_link" {
+  value       = "http://${var.domain}"
+  description = "The unsecured version of the site."
+}
+
+output "https_link" {
+  value       = "https://${var.domain}"
+  description = "The secured version of the site."
 }

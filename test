@@ -74,7 +74,6 @@ gcloud config set project ${PROJECT}
 terraform init
 terraform apply -auto-approve -var project_id="${PROJECT}" -var project_number="${PROJECT_NUMBER}" -var domain="${DOMAIN}" -var location="${LOCATION}" -var yesorno="${ANSWER}" -var basename="${BASENAME}"
 
-
 # Check on things
 section_open "Test Load Balancer parts exist"
 evalTest 'gcloud compute forwarding-rules describe $BASENAME-https-lb-forwarding-rule --global --format="value(name)"' $BASENAME-https-lb-forwarding-rule
