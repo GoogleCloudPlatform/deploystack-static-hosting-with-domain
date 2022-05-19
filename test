@@ -72,7 +72,7 @@ CLOUDDNSZONE=$BASENAME-zone
 gcloud config set project ${PROJECT}
 
 terraform init
-terraform apply -auto-approve -var project_id="${PROJECT}" -var project_number="${PROJECT_NUMBER}" -var domain="${DOMAIN}" -var location="${LOCATION}" -var yesorno="${ANSWER}" -var basename="${BASENAME}"
+terraform apply -auto-approve -var project_id="${PROJECT}" -var project_number="${PROJECT_NUMBER}" -var domain="${DOMAIN}" -var location="${LOCATION}" -var yesorno="${ANSWER}" 
 
 # Check on things
 section_open "Test Load Balancer parts exist"
@@ -100,7 +100,7 @@ section_open "Test DNS Records exist"
 IP=$(gcloud compute addresses describe $BASENAME-ip --global --format="value(address)")
 evalTest 'gcloud dns record-sets describe $DOMAIN --zone $CLOUDDNSZONE --type A --format="value(DATA)"' $IP
 
-terraform destroy -auto-approve -var project_id="${PROJECT}" -var project_number="${PROJECT_NUMBER}" -var domain="${DOMAIN}" -var location="${LOCATION}" -var yesorno="${ANSWER}" -var basename="${BASENAME}"
+terraform destroy -auto-approve -var project_id="${PROJECT}" -var project_number="${PROJECT_NUMBER}" -var domain="${DOMAIN}" -var location="${LOCATION}" -var yesorno="${ANSWER}" 
 
 
 section_open "Test Load Balancer parts don't exist"
