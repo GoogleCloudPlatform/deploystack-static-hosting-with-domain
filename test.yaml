@@ -18,10 +18,11 @@
 # * Cloud Build Service account must be added to the list of owners of that domain  
 
 steps:
-   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+   - name: 'gcr.io/cloudshell-images/cloudshell:latest'
      entrypoint: bash
      args: [ './test' ]
      env:
       - 'APPINABOX_YESORNOSITE_DOMAIN=$_APPINABOX_YESORNOSITE_DOMAIN'
+timeout: 2200s      
 substitutions:
   _APPINABOX_YESORNOSITE_DOMAIN: "example.com" # default value  

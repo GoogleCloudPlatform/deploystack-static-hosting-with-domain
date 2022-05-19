@@ -1,22 +1,69 @@
-# Copyright 2021 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# DON'T REMOVE FROM test script.
+CYAN='\033[0;36m'
+BCYAN='\033[1;36m'
+NC='\033[0m' # No Color
+DIVIDER=$(printf %"$(tput cols)"s | tr " " "*")
+DIVIDER+="\n"
 
-source globals
-OUTPUTFILE="test.sh"
+function get_project_id() {
+    local __resultvar=$1
+    VALUE=$(gcloud config get-value project | xargs)
+    eval $__resultvar="'$VALUE'"
+}
+
+function get_project_number() {
+    local __resultvar=$1
+    local PRO=$2
+    VALUE=$(gcloud projects list --filter="project_id=$PRO" --format="value(PROJECT_NUMBER)" | xargs)
+    eval $__resultvar="'$VALUE'"
+}
+
+# DISPLAY HELPERS
+function section_open() {
+    section_description=$1
+    printf "$DIVIDER"
+    printf "${CYAN}$section_description${NC} \n"
+    printf "$DIVIDER"
+}
+
+function section_close() {
+    printf "$DIVIDER"
+    printf "${CYAN}$section_description ${BCYAN}- done${NC}\n"
+    printf "\n\n"
+}
+
+function evalTest() {
+    local command=$1
+    local expected=$2
+
+    local ERR=""
+    got=$(eval $command 2>errFile)
+    ERR=$(<errFile)
+
+    if [ ${#ERR} -gt 0 ]; then
+        if [ "$expected" = "EXPECTERROR" ]; then
+            printf "ok \n"
+            return
+        fi
+
+        printf "expecting no error, got error='$ERR'   \n"
+        exit 1
+    fi
+
+    if [ "$got" != "$expected" ]; then
+        printf "expecting: '$expected' got: '$got'  \n"
+        exit 1
+    fi
+
+    printf "$expected is ok\n"
+}
+# END DON'T REMOVE FROM test script.
+
 DOMAIN=$APPINABOX_YESORNOSITE_DOMAIN
 ANSWER="yes"
+LOCATION=US
 get_project_id PROJECT
+get_project_number PROJECT_NUMBER $PROJECT
 
 BUCKET=$DOMAIN
 BASENAME=${DOMAIN//./-}
@@ -24,7 +71,8 @@ CLOUDDNSZONE=$BASENAME-zone
 
 gcloud config set project ${PROJECT}
 
-./install $DOMAIN $ANSWER $PROJECT "IGNOREOWNERSHIPFORTESTING"
+terraform init
+terraform apply -auto-approve -var project_id="${PROJECT}" -var project_number="${PROJECT_NUMBER}" -var domain="${DOMAIN}" -var location="${LOCATION}" -var yesorno="${ANSWER}" 
 
 # Check on things
 section_open "Test Load Balancer parts exist"
@@ -52,8 +100,8 @@ section_open "Test DNS Records exist"
 IP=$(gcloud compute addresses describe $BASENAME-ip --global --format="value(address)")
 evalTest 'gcloud dns record-sets describe $DOMAIN --zone $CLOUDDNSZONE --type A --format="value(DATA)"' $IP
 
+terraform destroy -auto-approve -var project_id="${PROJECT}" -var project_number="${PROJECT_NUMBER}" -var domain="${DOMAIN}" -var location="${LOCATION}" -var yesorno="${ANSWER}" 
 
-./uninstall $DOMAIN $PROJECT 
 
 section_open "Test Load Balancer parts don't exist"
 evalTest 'gcloud compute forwarding-rules describe $BASENAME-https-lb-forwarding-rule --global --format="value(name)"' "EXPECTERROR"
