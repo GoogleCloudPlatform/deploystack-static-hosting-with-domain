@@ -5,3 +5,4 @@ www/.DS_Store
 .terraform*
 errFile
 clean
+terraform.tfstate
