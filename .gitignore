@@ -6,3 +6,4 @@ www/.DS_Store
 errFile
 clean
 terraform.tfstate
+terraform.tfstate.backup
