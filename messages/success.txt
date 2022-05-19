@@ -1,0 +1,12 @@
+
+
+CONGRATS!!!!!!!  
+You have configured a project, spun up architecture, and deployed code.
+
+See your site at the link labled "http_link" referenced above. It might 
+take a few minutes to be available, as all of the constiuent parts warm up.  
+
+Secure version (labled "https_link") may take up to an hour to be ready, 
+because of SSL cert provisioning process.   
+
+

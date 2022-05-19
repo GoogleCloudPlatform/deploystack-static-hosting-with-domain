@@ -2,3 +2,11 @@
 contact.yaml
 www/.DS_Store
 .DS_Store
+.terraform*
+errFile
+clean
+terraform.tfstate
+terraform.tfstate.backup
+go.mod
+go.sum
+terraform.tfvars
