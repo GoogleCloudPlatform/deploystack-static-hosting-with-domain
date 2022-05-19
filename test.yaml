@@ -23,5 +23,6 @@ steps:
      args: [ './test' ]
      env:
       - 'APPINABOX_YESORNOSITE_DOMAIN=$_APPINABOX_YESORNOSITE_DOMAIN'
+timeout: 2200s      
 substitutions:
   _APPINABOX_YESORNOSITE_DOMAIN: "example.com" # default value  
