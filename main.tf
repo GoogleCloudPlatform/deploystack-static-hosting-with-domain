@@ -1,12 +1,24 @@
+/**
+ * Copyright 2022 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 variable "project_id" {
   type = string
 }
 
 variable "project_number" {
-  type = string
-}
-
-variable "basename" {
   type = string
 }
 
@@ -148,14 +160,14 @@ resource "google_compute_url_map" "lb" {
 # Enabling HTTP
 resource "google_compute_target_http_proxy" "lb-proxy" {
   project = var.project_id
-  name    = "${var.basename}-lb-proxy"
+  name    = "${local.basename}-lb-proxy"
   url_map = google_compute_url_map.lb.id
   depends_on = [google_compute_url_map.lb]
 }
 
 resource "google_compute_forwarding_rule" "http-lb-forwarding-rule" {
   project               = var.project_id
-  name                  = "${var.basename}-http-lb-forwarding-rule"
+  name                  = "${local.basename}-http-lb-forwarding-rule"
   provider              = google-beta
   region                = "none"
   load_balancing_scheme = "EXTERNAL"
@@ -170,7 +182,7 @@ resource "google_compute_forwarding_rule" "http-lb-forwarding-rule" {
 # Enabling HTTPS
 resource "google_compute_target_https_proxy" "ssl-lb-proxy" {
   project          = var.project_id
-  name             = "${var.basename}-ssl-lb-proxy"
+  name             = "${local.basename}-ssl-lb-proxy"
   url_map          = google_compute_url_map.lb.id
   ssl_certificates = [google_compute_managed_ssl_certificate.cert.id]
   depends_on = [google_compute_url_map.lb,google_compute_managed_ssl_certificate.cert ]
@@ -178,7 +190,7 @@ resource "google_compute_target_https_proxy" "ssl-lb-proxy" {
 
 resource "google_compute_forwarding_rule" "https-lb-forwarding-rule" {
   project               = var.project_id
-  name                  = "${var.basename}-https-lb-forwarding-rule"
+  name                  = "${local.basename}-https-lb-forwarding-rule"
   provider              = google-beta
   region                = "none"
   load_balancing_scheme = "EXTERNAL"

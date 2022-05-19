@@ -7,3 +7,6 @@ errFile
 clean
 terraform.tfstate
 terraform.tfstate.backup
+go.mod
+go.sum
+terraform.tfvars
