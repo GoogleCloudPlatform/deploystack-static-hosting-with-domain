@@ -2,3 +2,6 @@
 contact.yaml
 www/.DS_Store
 .DS_Store
+.terraform*
+errFile
+clean

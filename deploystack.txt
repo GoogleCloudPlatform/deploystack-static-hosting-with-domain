@@ -1,0 +1,3 @@
+This process will create a simple yes or no question site using a Cloud Storage Bucket.
+Obviously once you create this Cloud Storage Bucket based website, you can host any kind 
+of content here.

@@ -1,0 +1,14 @@
+{	"title":"YESORNOSITE",
+	"duration":5,
+	"collect_project":true,
+	"collect_project_number":true,
+    "collect_billing_account":false,
+	"register_domain": true,
+	"custom_settings":[
+		{	
+			"name":"yesorno",
+			"description":"the answer for the site - yes or no", 
+			"default": "yes"
+		}
+	]
+}
