@@ -1,4 +1,4 @@
-# Deploy Stack - YesOrNoSite 
+# Deploy Stack - Static Hosting with Domain (YesOrNoSite) 
 
 This is a simple site creator that will spin up a Cloud Storage Served static
 website, fronted by a Google Cloud Load Balancer with an SSL certificate. 
