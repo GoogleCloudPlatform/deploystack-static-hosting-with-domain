@@ -1,3 +1,4 @@
 This process will create a simple yes or no question site using a Cloud Storage Bucket.
+It will also register the domain of the question with a Domain Registrar.
 Obviously once you create this Cloud Storage Bucket based website, you can host any kind 
 of content here.
