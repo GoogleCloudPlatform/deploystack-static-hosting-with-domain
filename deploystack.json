@@ -1,4 +1,5 @@
 {	"title":"Static Hosting with Domain (YESORNOSITE)",
+	"name":"static-hosting-with-domain",
 	"duration":5,
 	"documentation_link": "https://cloud.google.com/shell/docs/cloud-shell-tutorials/deploystack/static-hosting-with-domain",
 	"collect_project":true,
