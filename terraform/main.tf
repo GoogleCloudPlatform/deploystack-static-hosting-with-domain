@@ -14,25 +14,7 @@
  * limitations under the License.
  */
 
-variable "project_id" {
-  type = string
-}
 
-variable "project_number" {
-  type = string
-}
-
-variable "domain" {
-  type = string
-}
-
-variable "location" {
-  type = string
-}
-
-variable "yesorno" {
-  type = string
-}
 
 locals {
   basename     = replace(var.domain, ".", "-")
@@ -213,15 +195,4 @@ resource "google_dns_record_set" "a" {
 
   rrdatas = [google_compute_global_address.ip.address]
   depends_on = [google_compute_global_address.ip]
-}
-
-
-output "http_link" {
-  value       = "http://${var.domain}"
-  description = "The unsecured version of the site."
-}
-
-output "https_link" {
-  value       = "https://${var.domain}"
-  description = "The secured version of the site."
 }
