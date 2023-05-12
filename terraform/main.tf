@@ -22,6 +22,11 @@ locals {
   clouddnszone = "${local.basename}-zone"
 }
 
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
+
 
 # Enabling services in your GCP project
 variable "gcp_service_list" {
@@ -38,7 +43,7 @@ variable "gcp_service_list" {
 
 resource "google_project_service" "all" {
   for_each                   = toset(var.gcp_service_list)
-  project                    = var.project_number
+  project                    = data.google_project.project.number
   service                    = each.key
   disable_dependent_services = false
   disable_on_destroy         = false
@@ -117,7 +122,7 @@ resource "google_storage_bucket_iam_binding" "policy" {
 resource "google_storage_bucket_object" "archive" {
   name   = "index.html"
   bucket = google_storage_bucket.http_bucket.name
-  source = "code/${var.yesorno}/index.html"
+  source = "../code/${var.yesorno}/index.html"
   depends_on = [
     google_project_service.all,
     google_storage_bucket.http_bucket,
@@ -147,11 +152,10 @@ resource "google_compute_target_http_proxy" "lb-proxy" {
   depends_on = [google_compute_url_map.lb]
 }
 
-resource "google_compute_forwarding_rule" "http-lb-forwarding-rule" {
+resource "google_compute_global_forwarding_rule" "http-lb-forwarding-rule" {
   project               = var.project_id
   name                  = "${local.basename}-http-lb-forwarding-rule"
   provider              = google-beta
-  region                = "none"
   load_balancing_scheme = "EXTERNAL"
   port_range            = "80"
   target                = google_compute_target_http_proxy.lb-proxy.id
@@ -170,11 +174,10 @@ resource "google_compute_target_https_proxy" "ssl-lb-proxy" {
   depends_on = [google_compute_url_map.lb,google_compute_managed_ssl_certificate.cert ]
 }
 
-resource "google_compute_forwarding_rule" "https-lb-forwarding-rule" {
+resource "google_compute_global_forwarding_rule" "https-lb-forwarding-rule" {
   project               = var.project_id
   name                  = "${local.basename}-https-lb-forwarding-rule"
   provider              = google-beta
-  region                = "none"
   load_balancing_scheme = "EXTERNAL"
   port_range            = "443"
   target                = google_compute_target_https_proxy.ssl-lb-proxy.id
