@@ -1,0 +1,22 @@
+title: Static Hosting with Domain
+name: static-hosting-with-domain
+duration: 5
+documentation_link: https://cloud.google.com/shell/docs/cloud-shell-tutorials/deploystack/static-hosting-with-domain
+collect_project: true
+collect_project_number: true
+collect_billing_account: false
+register_domain: true
+custom_settings:
+  - name: yesorno
+    description: Enter your choice for the site, will it answer `yes` or `no`
+    default: yes
+    options:
+      - no
+      - yes
+  - name: location
+    description: the location for the Cloud Storage Bucket
+    default: US
+    options:
+      - US
+      - EU
+      - ASIA

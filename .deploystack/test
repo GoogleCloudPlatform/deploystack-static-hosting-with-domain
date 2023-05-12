@@ -126,7 +126,7 @@ section_close
 
 section_open "Test DNS Records dont exist"
 evalTest 'gcloud dns record-sets describe $DOMAIN --zone $CLOUDDNSZONE --type A --format="value(DATA)"' "EXPECTERROR"
-
+section_close
 
 printf "$DIVIDER"
 printf "CONGRATS!!!!!!! \n"

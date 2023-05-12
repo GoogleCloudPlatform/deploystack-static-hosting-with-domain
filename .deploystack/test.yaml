@@ -20,7 +20,7 @@
 steps:
    - name: 'gcr.io/cloudshell-images/cloudshell:latest'
      entrypoint: bash
-     args: [ './test' ]
+     args: [ '.deploystack/test' ]
      env:
       - 'APPINABOX_YESORNOSITE_DOMAIN=$_APPINABOX_YESORNOSITE_DOMAIN'
 timeout: 2200s      
