@@ -1,3 +1,4 @@
+#!/bin/bash
 # DON'T REMOVE FROM test script.
 CYAN='\033[0;36m'
 BCYAN='\033[1;36m'
@@ -62,6 +63,7 @@ function evalTest() {
 DOMAIN=$APPINABOX_YESORNOSITE_DOMAIN
 ANSWER="yes"
 LOCATION=US
+terraformDIR=terraform
 get_project_id PROJECT
 get_project_number PROJECT_NUMBER $PROJECT
 
@@ -71,8 +73,12 @@ CLOUDDNSZONE=$BASENAME-zone
 
 gcloud config set project ${PROJECT}
 
-terraform init
-terraform apply -auto-approve -var project_id="${PROJECT}" -var project_number="${PROJECT_NUMBER}" -var domain="${DOMAIN}" -var location="${LOCATION}" -var yesorno="${ANSWER}" 
+terraform -chdir="$terraformDIR" init  
+terraform -chdir="$terraformDIR" apply  -auto-approve \
+    -var project_id="${PROJECT}" \
+    -var domain="${DOMAIN}" \
+    -var location="${LOCATION}" \
+    -var yesorno="${ANSWER}" 
 
 # Check on things
 section_open "Test Load Balancer parts exist"
@@ -100,7 +106,11 @@ section_open "Test DNS Records exist"
 IP=$(gcloud compute addresses describe $BASENAME-ip --global --format="value(address)")
 evalTest 'gcloud dns record-sets describe $DOMAIN --zone $CLOUDDNSZONE --type A --format="value(DATA)"' $IP
 
-terraform destroy -auto-approve -var project_id="${PROJECT}" -var project_number="${PROJECT_NUMBER}" -var domain="${DOMAIN}" -var location="${LOCATION}" -var yesorno="${ANSWER}" 
+terraform -chdir="$terraformDIR" destroy -auto-approve \
+    -var project_id="${PROJECT}" \
+    -var domain="${DOMAIN}" \
+    -var location="${LOCATION}" \
+    -var yesorno="${ANSWER}" 
 
 
 section_open "Test Load Balancer parts don't exist"
@@ -126,7 +136,7 @@ section_close
 
 section_open "Test DNS Records dont exist"
 evalTest 'gcloud dns record-sets describe $DOMAIN --zone $CLOUDDNSZONE --type A --format="value(DATA)"' "EXPECTERROR"
-
+section_close
 
 printf "$DIVIDER"
 printf "CONGRATS!!!!!!! \n"
