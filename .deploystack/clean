@@ -80,7 +80,7 @@ section_open "Delete the IP Address"
 section_close
 
 section_open "Delete the Cloud Storage Bucket"
-    gsutil rm -rf gs://"$DOMAIN" 
+    gcloud storage rm --recursive --continue-on-error gs://"$DOMAIN" 
 section_close
 
 
